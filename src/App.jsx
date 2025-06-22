@@ -10,7 +10,7 @@ import { BellIcon, MessageCircleMore, Menu, X } from "lucide-react";
 import navLogo from "../src/assets/images/nav-logo.png";
 import navProfile from "../src/assets/images/nav-profile.png";
 import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignupPage";
+import SignUpPage from "./pages/SignUpPage";
 import "./App.css";
 import DashboardPage from "./pages/DashboardPage";
 import PetOwnersPage from "./pages/PetOwnersPage";
