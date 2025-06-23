@@ -127,7 +127,7 @@ function DashboardPage() {
           <thead>
             <tr className="bg-gray-400 text-white text-left">
               {tableData.headers.map((header, index) => (
-                <th key={index} className="py-8 text-center">
+                <th key={index} className="px-4 py-8 text-center">
                   {header}
                 </th>
               ))}
@@ -149,17 +149,18 @@ function DashboardPage() {
                     let statusClass = "";
 
                     if (isStatusColumn) {
-                      if (status === "complete") statusClass = "bg-blue-200";
+                      if (status === "complete")
+                        statusClass = "bg-blue-200 rounded-lg";
                       else if (status === "in-progress")
-                        statusClass = "bg-green-200";
+                        statusClass = "bg-green-200 rounded-lg";
                       else if (status === "pending")
-                        statusClass = "bg-yellow-200";
+                        statusClass = "bg-yellow-200 rounded-lg";
                     }
 
                     return (
                       <td
                         key={cellIndex}
-                        className={`py-4  text-center ${
+                        className={`px-4 py-4 text-center ${
                           isStatusColumn ? statusClass : ""
                         }`}
                       >

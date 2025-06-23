@@ -15,6 +15,7 @@ import "./App.css";
 import DashboardPage from "./pages/DashboardPage";
 import PetOwnersPage from "./pages/PetOwnersPage";
 import PatientRecords from "./pages/PatientRecords";
+import SettingsPage from "./pages/Settings/SettingsPage";
 
 function App() {
   return (
@@ -65,7 +66,7 @@ function DashboardLayout() {
               <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
-                  `block p-2 rounded ${
+                  ` block p-2 rounded ${
                     isActive
                       ? "bg-black text-white"
                       : "hover:bg-black hover:text-white"
@@ -218,6 +219,7 @@ function DashboardLayout() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/pet-owner" element={<PetOwnersPage />} />
             <Route path="/patient-records" element={<PatientRecords />} />
+            <Route path="/*" element={<SettingsPage />} />
           </Routes>
         </div>
       </div>

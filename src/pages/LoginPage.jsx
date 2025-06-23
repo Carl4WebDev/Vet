@@ -18,7 +18,7 @@ export default function LoginPage() {
               <img src={signinLogo} className="h-8/12" />
             </div>
             <div className="-translate-x-10 -translate-y-40">
-              <h1 className="text-3xl font-bold mb-4">
+              <h1 className=" sm:text-2xl font-bold mb-4 mt-8 md:mt-0">
                 VetConnect in pet we care
               </h1>
             </div>
