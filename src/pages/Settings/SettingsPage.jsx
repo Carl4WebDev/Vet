@@ -15,7 +15,7 @@ const SettingsPage = () => {
       <hr className="text-gray-300 h-2.5 mb-4" />
 
       {/* Navigation Tabs */}
-      <div className="grid grid-cols-3 w-full  border-b border-gray-200 mb-8">
+      <div className="grid grid-cols-3 w-full  border-b border-gray-200 ">
         <NavLink
           to={"/settings/clinic-details"}
           className={({ isActive }) =>

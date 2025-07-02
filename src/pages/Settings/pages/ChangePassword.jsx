@@ -28,7 +28,7 @@ export default function ChangePassword() {
     "h-5 w-5 sm:h-6 sm:w-6 absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer opacity-70 hover:opacity-100";
 
   return (
-    <div className="min-h-screen bg-[#D9D9D9] flex items-center justify-start font-[Roboto]">
+    <div className="min-h-screen rounded-[30px] bg-[#D9D9D9] flex items-start justify-start font-[Roboto]">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-[480px] bg-[#D9D9D9] rounded-xl p-6 sm:p-10 flex flex-col gap-6"

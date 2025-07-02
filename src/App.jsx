@@ -5,17 +5,28 @@ import {
   Route,
   Link,
   NavLink,
+  useLocation,
 } from "react-router-dom";
-import { BellIcon, MessageCircleMore, Menu, X } from "lucide-react";
+import {
+  BellIcon,
+  MessageCircleMore,
+  Menu,
+  X,
+  MessageSquareIcon,
+  MessageSquareMoreIcon,
+} from "lucide-react";
 import navLogo from "../src/assets/images/nav-logo.png";
 import navProfile from "../src/assets/images/nav-profile.png";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import "./App.css";
 import DashboardPage from "./pages/DashboardPage";
-import PetOwnersPage from "./pages/PetOwnersPage";
+import PetOwnersPage from "./pages/PetOwners/PetOwnersPage";
 import PatientRecords from "./pages/PatientRecords";
 import SettingsPage from "./pages/Settings/SettingsPage";
+import OwnerDetailPage from "./pages/PetOwners/Owner/OwnerDetailsPage";
+import PetDetailsPage from "./pages/PetOwners/Pet/PetDetailsPage";
+import PetNewHealthRecord from "./pages/PetOwners/Pet/PetNewHealthRecord";
 
 function App() {
   return (
@@ -30,8 +41,11 @@ function App() {
 }
 
 function DashboardLayout() {
+  const location = useLocation();
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  const [isMessageIconOpen, setIsMessageIconOpen] = useState(false);
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 h-screen w-screen bg-white overflow-x-hidden">
       {/* Mobile Sidebar Toggle Button (fixed bottom right) */}
@@ -80,13 +94,15 @@ function DashboardLayout() {
             <li>
               <NavLink
                 to="/pet-owner"
-                className={({ isActive }) =>
-                  `block p-2 rounded ${
+                className={({ isActive }) => {
+                  // Update message icon state based on active status
+                  setIsMessageIconOpen(isActive);
+                  return `block p-2 rounded ${
                     isActive
                       ? "bg-black text-white"
                       : "hover:bg-black hover:text-white"
-                  }`
-                }
+                  }`;
+                }}
                 onClick={() => setIsMobileSidebarOpen(false)}
               >
                 Pet Owners
@@ -184,6 +200,24 @@ function DashboardLayout() {
                 Logout
               </NavLink>
             </li>
+            {isMessageIconOpen && (
+              <li>
+                <NavLink
+                  to="/message"
+                  className={({ isActive }) =>
+                    `p-2 rounded flex justify-center items-center gap-4 mt-10 ${
+                      isActive
+                        ? "bg-black text-white"
+                        : "hover:bg-black hover:text-white"
+                    }`
+                  }
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                >
+                  <MessageSquareMoreIcon />
+                  Message
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
@@ -216,10 +250,15 @@ function DashboardLayout() {
         {/* Page Content Area - This is where your pages will render */}
         <div className="flex-1 overflow-auto p-4">
           <Routes>
+            {/* Sidebar links */}
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/pet-owner" element={<PetOwnersPage />} />
+            <Route path="/*" element={<PetOwnersPage />} />
             <Route path="/patient-records" element={<PatientRecords />} />
             <Route path="/*" element={<SettingsPage />} />
+
+            {/* Pet pages*/}
+            <Route path="/pet-details/*" element={<PetDetailsPage />} />
+            <Route path="/pet-health-record" element={<PetNewHealthRecord />} />
           </Routes>
         </div>
       </div>
