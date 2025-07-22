@@ -17,14 +17,8 @@ const SettingsPage = () => {
       {/* Navigation Tabs */}
       <div className="grid grid-cols-3 w-full  border-b border-gray-200 ">
         <NavLink
-          to={"/settings/clinic-details"}
-          className={({ isActive }) =>
-            `px-2 text-center py-2 font-medium text-[14px] sm:text-[20px] hover:bg-black hover:text-white truncate ${
-              isActive
-                ? "bg-black text-white"
-                : "hover:bg-black hover:text-white"
-            }`
-          }
+          to={"/settings"}
+          className="px-2 text-center py-2 font-medium text-[14px] sm:text-[20px] hover:bg-black hover:text-white truncate"
         >
           Clinic Details
         </NavLink>
@@ -54,15 +48,11 @@ const SettingsPage = () => {
         </NavLink>
       </div>
 
-      <div className="space-y-6 p-4">
+      <div className=" p-4">
         <Routes>
-          <Route path="/settings" element={<ClinicDetails />} />
-          <Route path="/settings/clinic-details" element={<ClinicDetails />} />
-          <Route
-            path="/settings/change-password"
-            element={<ChangePassword />}
-          />
-          <Route path="/settings/plans" element={<PlanPage />} />
+          <Route path="*" element={<ClinicDetails />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/plans" element={<PlanPage />} />
         </Routes>
       </div>
     </div>

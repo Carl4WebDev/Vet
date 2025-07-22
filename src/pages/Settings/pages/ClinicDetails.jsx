@@ -22,8 +22,8 @@ const ClinicDetails = () => {
   };
 
   return (
-    <div className="bg-[#D9D9D9] flex rounded-[30px]  items-center  justify-start px-5  py-5 font-roboto">
-      <div className="p-8 rounded-3xl w-[1101px] max-w-4xl">
+    <div className="bg-[#D9D9D9] flex flex-col md:flex-row rounded-[30px] items-center justify-start px-4 md:px-5 py-5 font-roboto">
+      <div className="p-4 md:p-8 rounded-3xl w-full md:w-[1101px] max-w-4xl">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Form Section */}
           <div className="flex-1 space-y-5">
@@ -35,7 +35,7 @@ const ClinicDetails = () => {
                 name="clinicName"
                 value={formData.clinicName}
                 onChange={handleChange}
-                className="w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
+                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
               />
             </div>
             <div>
@@ -47,7 +47,7 @@ const ClinicDetails = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
+                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
               />
             </div>
             <div>
@@ -58,7 +58,7 @@ const ClinicDetails = () => {
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className="w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
+                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
               />
             </div>
             <div>
@@ -70,12 +70,12 @@ const ClinicDetails = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
+                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
               />
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-center gap-6 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
               <button className="bg-white text-black px-6 py-2 rounded-full border hover:bg-gray-200 transition shadow-[0px_4px_4px_0px_#00000040]">
                 Confirm
               </button>
@@ -86,15 +86,15 @@ const ClinicDetails = () => {
           </div>
 
           {/* Right Profile Image Upload */}
-          <div className="flex flex-col items-center justify-center mb-20 mr-4 ">
+          <div className="flex flex-col items-center justify-center mb-10 md:mb-20 md:mr-4">
             <img
               src={preview}
               alt="Clinic "
-              className="w-[246px] h-[246px] rounded-full object-cover border-1 border-black bg-white"
+              className="w-[200px] h-[200px] md:w-[246px] md:h-[246px] rounded-full object-cover border border-black bg-white"
             />
             <label
               htmlFor="image-upload"
-              className=" mt-4 flex items-center justify-center text-center bg-white w-[153px] h-[44px] rounded-full cursor-pointer hover:bg-gray-100 shadow-[0px_4px_5px_5px_#00000040]"
+              className="mt-4 flex items-center justify-center text-center bg-white w-[120px] h-[44px] md:w-[153px] rounded-full cursor-pointer hover:bg-gray-100 shadow-[0px_4px_5px_5px_#00000040]"
             >
               Upload
             </label>

@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import PetMedHistory from "./Modals/PetMedHistory";
 
 const PetDetailsPage = () => {
+  const [open, setOpen] = useState(false);
+
   const medicalHistory = [
     {
       id: 1,
@@ -43,6 +46,7 @@ const PetDetailsPage = () => {
 
   return (
     <div className="p-6 space-y-6 font-sans">
+      <PetMedHistory isOpen={open} onClose={() => setOpen(false)} />
       {/* Top Info Card */}
       <div className="border rounded-xl p-6 flex flex-col md:flex-row items-start gap-6 shadow-sm bg-white">
         <div className="flex flex-col gap-4">
@@ -114,7 +118,11 @@ const PetDetailsPage = () => {
       </div>
 
       {/* Medical History Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+      <div
+        onClick={() => setOpen(true)}
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+      >
         {medicalHistory.map((entry, index) => (
           <div key={entry.id} className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-bold text-lg mb-2">

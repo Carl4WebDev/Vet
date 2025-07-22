@@ -5,7 +5,6 @@ import {
   Route,
   Link,
   NavLink,
-  useLocation,
 } from "react-router-dom";
 import {
   BellIcon,
@@ -27,6 +26,9 @@ import SettingsPage from "./pages/Settings/SettingsPage";
 import OwnerDetailPage from "./pages/PetOwners/Owner/OwnerDetailsPage";
 import PetDetailsPage from "./pages/PetOwners/Pet/PetDetailsPage";
 import PetNewHealthRecord from "./pages/PetOwners/Pet/PetNewHealthRecord";
+import StaffPage from "./pages/Staff/StaffPage";
+import MessagePage from "./pages/MessagePage";
+import SchedulePage from "./pages/SchedulePage";
 
 function App() {
   return (
@@ -41,8 +43,6 @@ function App() {
 }
 
 function DashboardLayout() {
-  const location = useLocation();
-
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const [isMessageIconOpen, setIsMessageIconOpen] = useState(false);
@@ -140,7 +140,7 @@ function DashboardLayout() {
             </li>
             <li>
               <NavLink
-                to="/appointments-schedule"
+                to="/schedule"
                 className={({ isActive }) =>
                   `block p-2 rounded ${
                     isActive
@@ -254,7 +254,10 @@ function DashboardLayout() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/*" element={<PetOwnersPage />} />
             <Route path="/patient-records" element={<PatientRecords />} />
-            <Route path="/*" element={<SettingsPage />} />
+            <Route path="/settings/*" element={<SettingsPage />} />
+            <Route path="/staffs" element={<StaffPage />} />
+            <Route path="/messages" element={<MessagePage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
 
             {/* Pet pages*/}
             <Route path="/pet-details/*" element={<PetDetailsPage />} />
