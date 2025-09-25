@@ -48,8 +48,6 @@ export default function PetOwnersPage() {
     );
   }, [filter]);
 
-  const [selectedOwnerId, setSelectedOwnerId] = useState(null);
-
   return (
     <div className="min-h-screen bg-gray-100 p-2">
       <div className=" mx-auto">

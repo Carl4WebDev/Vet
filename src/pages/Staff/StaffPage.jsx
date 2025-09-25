@@ -4,6 +4,8 @@ import { FaSearch, FaCalendarAlt } from "react-icons/fa";
 import EditStaff from "./Modals/EditStaff";
 import AddStaff from "./Modals/AddStaff";
 
+import DeleteModal from "../../components/DeleteModal";
+
 const staffData = [
   {
     id: 1,
@@ -32,8 +34,14 @@ const StaffPage = () => {
   const [startDate, setStartDate] = useState("2024-09-25");
   const [endDate, setEndDate] = useState("2024-09-26");
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   return (
     <div className="w-full max-w-6xl mx-auto bg-white p-4">
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
       <EditStaff isOpen={open} onClose={() => setOpen(false)} />
       <AddStaff isOpen={openAddStaff} onClose={() => setOpenAddStaff(false)} />
       <h2 className="text-2xl font-semibold mb-4">Staffs</h2>
@@ -101,25 +109,25 @@ const StaffPage = () => {
         <table className="min-w-full border-collapse text-sm">
           <thead>
             <tr className="bg-gray-600 text-white">
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Staff Name
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Staff ID
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Position
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Department
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Contact Number
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">
                 Email Address
               </th>
-              <th className="px-4 py-2 text-left whitespace-nowrap">Action</th>
+              <th className="p-2 md:p-4 text-left whitespace-nowrap">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -142,7 +150,10 @@ const StaffPage = () => {
                   >
                     Edit
                   </button>
-                  <button className="bg-red-400 text-white px-2 py-1 text-xs rounded">
+                  <button
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="bg-red-400 text-white px-2 py-1 text-xs rounded"
+                  >
                     Delete
                   </button>
                 </td>

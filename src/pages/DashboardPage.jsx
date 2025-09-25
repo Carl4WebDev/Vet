@@ -122,12 +122,12 @@ function DashboardPage() {
     <div className="font-sans">
       {/* Today Schedule Table */}
       <h1 className="text-2xl font-bold mb-4">Today Schedule</h1>
-      <div className="">
+      <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-400 text-white text-left">
               {tableData.headers.map((header, index) => (
-                <th key={index} className="px-4 py-8 text-center">
+                <th key={index} className="p-2 md:p-4  text-center">
                   {header}
                 </th>
               ))}
@@ -160,7 +160,7 @@ function DashboardPage() {
                     return (
                       <td
                         key={cellIndex}
-                        className={`px-4 py-4 text-center ${
+                        className={`p-2 md:p-4 ${
                           isStatusColumn ? statusClass : ""
                         }`}
                       >

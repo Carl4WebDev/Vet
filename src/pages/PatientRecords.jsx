@@ -110,13 +110,13 @@ function PatientRecords() {
         <table className="min-w-full">
           <thead>
             <tr className="bg-gray-400 text-center text-white">
-              <th className="px-4 py-8 text-left">Record ID</th>
-              <th className="px-4 py-8 text-left">Customer Name</th>
-              <th className="px-4 py-8 text-left">Pvt. Name</th>
-              <th className="px-4 py-8 text-left">Veterinarian</th>
-              <th className="px-4 py-8 text-left">Date</th>
-              <th className="px-4 py-8 text-left">Breed</th>
-              <th className="px-4 py-8 text-left">Reason</th>
+              <th className="p-2 md:p-4text-left">Record ID</th>
+              <th className="p-2 md:p-4text-left">Customer Name</th>
+              <th className="p-2 md:p-4text-left">Pet Name</th>
+              <th className="p-2 md:p-4text-left">Veterinarian</th>
+              <th className="p-2 md:p-4text-left">Date</th>
+              <th className="p-2 md:p-4text-left">Breed</th>
+              <th className="p-2 md:p-4text-left">Reason</th>
             </tr>
           </thead>
           <tbody>
@@ -125,13 +125,13 @@ function PatientRecords() {
                 key={index}
                 className={index % 2 === 0 ? "bg-white" : "bg-gray-300"}
               >
-                <td className="px-4 py-8">{record.recordId}</td>
-                <td className="px-4 py-8">{record.customerName}</td>
-                <td className="text-blue-600 px-4 py-8">{record.petName}</td>
-                <td className="px-4 py-8">{record.veterinarian}</td>
-                <td className="px-4 py-8">{record.date}</td>
-                <td className="px-4 py-8">{record.breed}</td>
-                <td className="px-4 py-8">{record.reason}</td>
+                <td className="p-2 md:p-4">{record.recordId}</td>
+                <td className="p-2 md:p-4">{record.customerName}</td>
+                <td className="text-blue-600 p-2 md:p-4">{record.petName}</td>
+                <td className="p-2 md:p-4">{record.veterinarian}</td>
+                <td className="p-2 md:p-4">{record.date}</td>
+                <td className="p-2 md:p-4">{record.breed}</td>
+                <td className="p-2 md:p-4">{record.reason}</td>
               </tr>
             ))}
           </tbody>

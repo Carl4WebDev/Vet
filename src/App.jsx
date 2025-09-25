@@ -187,7 +187,7 @@ function DashboardLayout() {
             </li>
             <li>
               <NavLink
-                to="/logout"
+                to="/"
                 className={({ isActive }) =>
                   `block p-2 rounded ${
                     isActive
@@ -203,7 +203,7 @@ function DashboardLayout() {
             {isMessageIconOpen && (
               <li>
                 <NavLink
-                  to="/message"
+                  to="/messages"
                   className={({ isActive }) =>
                     `p-2 rounded flex justify-center items-center gap-4 mt-10 ${
                       isActive

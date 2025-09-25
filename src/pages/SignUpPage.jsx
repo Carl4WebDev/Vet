@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import signupBg from "../assets/images/signup-bg.png";
 import navLogo from "../assets/images/nav-logo.png";

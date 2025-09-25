@@ -1,6 +1,8 @@
 import React from "react";
+import { useState } from "react";
 
 export default function Schedule() {
+  const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen bg-white p-4">
       <h1 className="text-xl font-semibold mb-4">Schedule</h1>
@@ -43,6 +45,21 @@ export default function Schedule() {
           </div>
 
           {/* Buttons */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="w-full bg-gray-300 rounded py-2 font-medium"
+          >
+            Vet. Dr Jorge M. Martinez
+          </button>
+
+          {open && (
+            <div className="w-full text-center mt-2 border rounded bg-white shadow text-sm">
+              <div className="w-full  rounded py-2 font-medium hover:bg-blue-400">
+                Dr Jessa D Ramos
+              </div>
+            </div>
+          )}
+
           <button className="w-full bg-gray-300 rounded py-2 font-medium">
             Pending Appointments
           </button>
