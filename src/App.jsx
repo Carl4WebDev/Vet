@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Link,
   NavLink,
+  useLocation,
 } from "react-router-dom";
 import {
   BellIcon,
@@ -30,13 +31,41 @@ import StaffPage from "./pages/Staff/StaffPage";
 import MessagePage from "./pages/MessagePage";
 import SchedulePage from "./pages/SchedulePage";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import { logoutClinic } from "./api/auth/logoutClinic";
+
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
-        <Route path="/*" element={<DashboardLayout />} />
+        {/* Guest only routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute guestOnly>
+              <LoginPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sign-up"
+          element={
+            <ProtectedRoute guestOnly>
+              <SignUpPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Authenticated users */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute allowedRole="clinic_owner">
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
@@ -44,8 +73,12 @@ function App() {
 
 function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
   const [isMessageIconOpen, setIsMessageIconOpen] = useState(false);
+  const location = useLocation();
+  // ✅ Update state when the route changes
+  useEffect(() => {
+    setIsMessageIconOpen(location.pathname.startsWith("/pet-owner"));
+  }, [location.pathname]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 h-screen w-screen bg-white overflow-x-hidden">
       {/* Mobile Sidebar Toggle Button (fixed bottom right) */}
@@ -95,7 +128,7 @@ function DashboardLayout() {
               <NavLink
                 to="/pet-owner"
                 className={({ isActive }) => {
-                  // Update message icon state based on active status
+                  // ❌ This runs during render
                   setIsMessageIconOpen(isActive);
                   return `block p-2 rounded ${
                     isActive
@@ -195,7 +228,10 @@ function DashboardLayout() {
                       : "hover:bg-black hover:text-white"
                   }`
                 }
-                onClick={() => setIsMobileSidebarOpen(false)}
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  logoutClinic();
+                }}
               >
                 Logout
               </NavLink>

@@ -13,7 +13,7 @@ export default function PetOwnerCard({ owner }) {
           <strong>Name:</strong> {owner.name}
         </p>
         <p>
-          <strong>No. Pet:</strong> {owner.petCount}
+          <strong>No. Pet:</strong> {owner.pet_count}
         </p>
         <p>
           <strong>ID:</strong> {owner.id}

@@ -9,6 +9,13 @@ import {
   Legend,
 } from "chart.js";
 
+import { useEffect, useState } from "react";
+import { getTodaySchedule } from "../api/get/getTodaySchedule";
+import { getPetTypeDistribution } from "../api/get/getPetTypeDistribution";
+import { getVisitPurposeDistribution } from "../api/get/getVisitPurposeDistribution";
+import { getStats } from "../api/get/getStats";
+import { getAttendanceStats } from "../api/get/getAttendanceStats";
+
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
@@ -20,62 +27,93 @@ ChartJS.register(
 );
 
 function DashboardPage() {
-  const petData = {
-    labels: ["Cats", "Dogs", "Others"],
-    datasets: [
-      {
-        data: [37.5, 37.5, 25],
-        backgroundColor: [
-          "#FF6384", // Red for Cats
-          "#36A2EB", // Blue for Dogs
-          "#FFCE56", // Yellow for Others
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
+  const clinicId = localStorage.getItem("clinic_id");
+  const [petData, setPetData] = useState(null);
+  const [visitData, setVisitData] = useState(null);
+  const [stats, setStats] = useState({
+    new_patients: 0,
+    transferees: 0,
+    week_visitors: 0,
+  });
+  const [attendanceData, setAttendanceData] = useState(null);
 
-  // Visit Purpose Data
-  const visitData = {
-    labels: ["Check up", "Grooming", "Vaccination", "Admission"],
-    datasets: [
-      {
-        data: [35, 25, 30, 10], // Sample percentages - adjust these to your actual data
-        backgroundColor: [
-          "#FF6384", // Red for Check up
-          "#36A2EB", // Blue for Grooming
-          "#FFCE56", // Yellow for Vaccination
-          "#4BC0C0", // Teal for Admission
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
+  const [schedule, setSchedule] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const appointmentData = {
-    labels: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ],
-    datasets: [
-      {
-        label: "Showed Up",
-        data: [8, 12, 5, 10, 18, 15], // Sample data for clients who attended
-        backgroundColor: "#36A2EB", // Blue
-        borderWidth: 1,
-      },
-      {
-        label: "No Show",
-        data: [4, 7, 3, 5, 4, 3], // Sample data for clients who didn't attend
-        backgroundColor: "#FF6384", // Pink
-        borderWidth: 1,
-      },
-    ],
-  };
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      const data = await getAttendanceStats(clinicId);
+
+      setAttendanceData({
+        labels: data.map((d) => d.day.trim()), // labels like Monday, Tuesday
+        datasets: [
+          {
+            label: "Showed Up",
+            data: data.map((d) => d.showed_up),
+            backgroundColor: "#36A2EB",
+            borderWidth: 1,
+          },
+          {
+            label: "No Show",
+            data: data.map((d) => d.no_show),
+            backgroundColor: "#FF6384",
+            borderWidth: 1,
+          },
+        ],
+      });
+    };
+
+    fetchAttendance();
+  }, [clinicId]);
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const result = await getTodaySchedule(clinicId);
+        setSchedule(result.data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedule();
+  }, [clinicId]);
+  useEffect(() => {
+    const fetchInsights = async () => {
+      // 🐾 Pet Type
+      const pets = await getPetTypeDistribution(clinicId);
+      setPetData({
+        labels: pets.map((p) => p.species), // ✅ species
+        datasets: [
+          {
+            data: pets.map((p) => p.total), // ✅ total
+            backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+            borderWidth: 1,
+          },
+        ],
+      });
+
+      // 🏥 Visit Purpose
+      const visits = await getVisitPurposeDistribution(clinicId);
+      setVisitData({
+        labels: visits.map((v) => v.type), // ✅ type
+        datasets: [
+          {
+            data: visits.map((v) => v.total), // ✅ total
+            backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+            borderWidth: 1,
+          },
+        ],
+      });
+
+      // 📊 Stats
+      const s = await getStats(clinicId);
+      setStats(s); // ✅ already matches
+    };
+
+    fetchInsights();
+  }, [clinicId]);
 
   const tableData = {
     headers: [
@@ -85,36 +123,6 @@ function DashboardPage() {
       "Reason",
       "Veterinarian",
       "Status",
-    ],
-    rows: [
-      [
-        "10:30 AM - 11:00 AM",
-        "Jorgie S Macron",
-        "Horgie Jr.",
-        "Check Up",
-        "Dr.Jorgie Y. Swerte",
-        "complete",
-      ],
-      [
-        "11:00 AM - 10:30 AM",
-        "Jack S. Sparrow",
-        "Garfield",
-        "Surgery",
-        "Dr.Jorgie Y. Swerte",
-        "in-progress",
-      ],
-      [
-        "12:00 PM - 12:00 PM",
-        "Jorgie S Macron",
-        "Blacky",
-        "Dental Care",
-        "Dr.Jorgie Y. Swerte",
-        "pending",
-      ],
-      ["12:00 PM - 12:30 PM", "Blocked", "", "", "", ""],
-      ["12:30 PM - 1:00 PM", "Blocked", "", "", "", ""],
-      ["1:00 PM - 2:00 PM", "Open", "", "", "", ""],
-      ["2:00 PM - 3:00 PM", "Open", "", "", "", ""],
     ],
   };
 
@@ -127,54 +135,67 @@ function DashboardPage() {
           <thead>
             <tr className="bg-gray-400 text-white text-left">
               {tableData.headers.map((header, index) => (
-                <th key={index} className="p-2 md:p-4  text-center">
+                <th key={index} className="p-2 md:p-4 text-center">
                   {header}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {tableData.rows.map((row, rowIndex) => {
-              // Get the status value (assuming it's the last column)
-              const status = row[row.length - 1].toLowerCase();
-
-              return (
-                <tr
-                  key={rowIndex}
-                  className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-300"}
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={tableData.headers.length}
+                  className="text-center py-4"
                 >
-                  {row.map((cell, cellIndex) => {
-                    // Apply special styling only to status column (last column)
-                    const isStatusColumn = cellIndex === row.length - 1;
-                    let statusClass = "";
+                  Loading...
+                </td>
+              </tr>
+            ) : schedule.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={tableData.headers.length}
+                  className="text-center py-4"
+                >
+                  No appointments today
+                </td>
+              </tr>
+            ) : (
+              schedule.map((row, rowIndex) => {
+                const status = row.status?.toLowerCase();
+                let statusClass = "";
 
-                    if (isStatusColumn) {
-                      if (status === "complete")
-                        statusClass = "bg-blue-200 rounded-lg";
-                      else if (status === "in-progress")
-                        statusClass = "bg-green-200 rounded-lg";
-                      else if (status === "pending")
-                        statusClass = "bg-yellow-200 rounded-lg";
-                    }
+                if (status === "complete")
+                  statusClass = "bg-blue-200 rounded-lg";
+                else if (status === "in-progress")
+                  statusClass = "bg-green-200 rounded-lg";
+                else if (status === "pending")
+                  statusClass = "bg-yellow-200 rounded-lg";
 
-                    return (
-                      <td
-                        key={cellIndex}
-                        className={`p-2 md:p-4 ${
-                          isStatusColumn ? statusClass : ""
-                        }`}
-                      >
-                        {cell}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+                return (
+                  <tr
+                    key={rowIndex}
+                    className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-300"}
+                  >
+                    <td className="p-2 md:p-4">
+                      {row.start_time} - {row.end_time}
+                    </td>
+                    <td className="p-2 md:p-4">{row.client_name}</td>
+                    <td className="p-2 md:p-4">{row.pet_name}</td>
+                    <td className="p-2 md:p-4">
+                      {row.type || "Not Specified"}
+                    </td>
+                    <td className="p-2 md:p-4">{row.name}</td>
+                    <td className={`p-2 md:p-4 ${statusClass}`}>
+                      {row.status}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
-
       <hr className="my-4 border-gray-300" />
 
       <div className="grid grid-cols-1 md:grid-cols-2">
@@ -184,21 +205,23 @@ function DashboardPage() {
             Type of Pet Admitted to Clinic
           </h2>
           <div className="min-w-48 min-h-48 w-full h-96">
-            <Pie
-              data={petData}
-              options={{
-                plugins: {
-                  legend: {
-                    position: "right",
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: (context) => `${context.label}: ${context.raw}%`,
+            {petData ? (
+              <Pie
+                data={petData}
+                options={{
+                  plugins: {
+                    legend: { position: "right" },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `${context.label}: ${context.raw}%`,
+                      },
                     },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            ) : (
+              <p>Loading...</p>
+            )}
           </div>
         </div>
 
@@ -207,38 +230,20 @@ function DashboardPage() {
           <h3 className="text-xl font-bold mb-4">Appointment Attendance</h3>
           <div className=" min-w-48 min-h-48 w-full h-96 ">
             <Bar
-              data={appointmentData}
+              data={attendanceData || { labels: [], datasets: [] }}
               options={{
                 indexAxis: "y",
                 responsive: true,
                 scales: {
                   x: {
                     beginAtZero: true,
-                    title: {
-                      display: true,
-                      text: "Number of Clients",
-                    },
+                    title: { display: true, text: "Number of Clients" },
                   },
-                  y: {
-                    title: {
-                      display: true,
-                      text: "Days/Categories",
-                    },
-                    // This creates the grouped effect
-                    offset: true, // Adds padding between category groups
-                  },
+                  y: { title: { display: true, text: "Days" }, offset: true },
                 },
-                plugins: {
-                  legend: {
-                    position: "top",
-                  },
-                },
-                // Group bars instead of stacking
+                plugins: { legend: { position: "top" } },
                 datasets: {
-                  bar: {
-                    barPercentage: 0.6, // Controls bar width (0.6 = 60% of available space)
-                    categoryPercentage: 0.8, // Controls group spacing
-                  },
+                  bar: { barPercentage: 0.6, categoryPercentage: 0.8 },
                 },
               }}
             />
@@ -253,27 +258,37 @@ function DashboardPage() {
             Purpose of Visit in the past weeks
           </h2>
           <div className="min-w-48 min-h-48 w-full h-96">
-            <Pie
-              data={visitData}
-              options={{
-                plugins: {
-                  legend: {
-                    position: "right",
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: (context) => `${context.label}: ${context.raw}%`,
+            {visitData ? (
+              <Pie
+                data={visitData}
+                options={{
+                  plugins: {
+                    legend: { position: "right" },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => `${context.label}: ${context.raw}%`,
+                      },
                     },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            ) : (
+              <p>Loading...</p>
+            )}
           </div>
         </div>
+
+        {/* Stats */}
         <div className="bg-white shadow w-96 h-96 mt-5 p-2 rounded-lg flex flex-col justify-center items-start gap-10">
-          <h1 className="text-3xl font-bold">New Patient: 5</h1>
-          <h1 className="text-3xl font-bold">Transferee: 3</h1>
-          <h1 className="text-3xl font-bold">Week Visitor: 47</h1>
+          <h1 className="text-3xl font-bold">
+            New Patient: {stats.new_patients}
+          </h1>
+          <h1 className="text-3xl font-bold">
+            Transferee: {stats.transferees}
+          </h1>
+          <h1 className="text-3xl font-bold">
+            Week Visitor: {stats.week_visitors}
+          </h1>
         </div>
       </div>
     </div>

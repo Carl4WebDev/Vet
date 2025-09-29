@@ -10,7 +10,7 @@ export default function ProtectedRoute({
 
   if (guestOnly && token) {
     // 🚫 Guests only → redirect logged-in users
-    return <Navigate to="/client-dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!guestOnly && (!token || role !== allowedRole)) {

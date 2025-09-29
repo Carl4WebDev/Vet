@@ -1,66 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getPatientsClinic } from "../api/get/getPatientClinic";
 
 function PatientRecords() {
+  const clinicId = localStorage.getItem("clinic_id");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const patientRecords = [
-    {
-      recordId: "0001 0001",
-      customerName: "Horgie L. Bangon",
-      petName: "Horgie Jr.",
-      veterinarian: "Dr. Jorge M. Martinez",
-      date: "September 26, 2024",
-      breed: "Dog",
-      reason: "Vaccination",
-    },
-    {
-      recordId: "0001 0002",
-      customerName: "Beni L. Odin",
-      petName: "Geof",
-      veterinarian: "Dr. Jorge M. Martinez",
-      date: "September 26, 2024",
-      breed: "Dog",
-      reason: "Dental Care",
-    },
-    {
-      recordId: "0001 0003",
-      customerName: "Beni",
-      petName: "Jerry",
-      veterinarian: "Dr. Jorge M. Martinez",
-      date: "September 26, 2024",
-      breed: "K9",
-      reason: "Dental Care",
-    },
-    {
-      recordId: "0001 0004",
-      customerName: "Beni",
-      petName: "Jerry",
-      veterinarian: "Dr. Jorge M. Martinez",
-      date: "September 26, 2024",
-      breed: "K9",
-      reason: "Dental Care",
-    },
-  ];
+  // Fetch patient records from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getPatientsClinic(clinicId);
+      setRecords(data);
+      setLoading(false);
+    };
 
-  // Convert date string to Date object for comparison
-  const parseDate = (dateStr) => {
-    return new Date(dateStr);
-  };
+    fetchData();
+  }, [clinicId]);
+
+  const parseDate = (dateStr) => new Date(dateStr);
 
   // Filter records based on date range
-  const filteredRecords = patientRecords.filter((record) => {
+  const filteredRecords = records.filter((record) => {
     const recordDate = parseDate(record.date);
     const start = startDate ? parseDate(startDate) : null;
     const end = endDate ? parseDate(endDate) : null;
 
-    if (start && end) {
-      return recordDate >= start && recordDate <= end;
-    } else if (start) {
-      return recordDate >= start;
-    } else if (end) {
-      return recordDate <= end;
-    }
+    if (start && end) return recordDate >= start && recordDate <= end;
+    if (start) return recordDate >= start;
+    if (end) return recordDate <= end;
     return true;
   });
 
@@ -70,8 +39,9 @@ function PatientRecords() {
       <hr className="mb-4" />
 
       <div className="flex justify-center sm:justify-between items-center flex-wrap">
-        <h2 className="text-3xl font-bold mb-6 ">Patient Records</h2>
-        {/* Date range filter controls */}
+        <h2 className="text-3xl font-bold mb-6">Patient Records</h2>
+
+        {/* Date Filters */}
         <div className="flex gap-4 mb-6 flex-wrap justify-center">
           <div>
             <label
@@ -110,30 +80,48 @@ function PatientRecords() {
         <table className="min-w-full">
           <thead>
             <tr className="bg-gray-400 text-center text-white">
-              <th className="p-2 md:p-4text-left">Record ID</th>
-              <th className="p-2 md:p-4text-left">Customer Name</th>
-              <th className="p-2 md:p-4text-left">Pet Name</th>
-              <th className="p-2 md:p-4text-left">Veterinarian</th>
-              <th className="p-2 md:p-4text-left">Date</th>
-              <th className="p-2 md:p-4text-left">Breed</th>
-              <th className="p-2 md:p-4text-left">Reason</th>
+              <th className="p-2 md:p-4 text-left">Record ID</th>
+              <th className="p-2 md:p-4 text-left">Customer Name</th>
+              <th className="p-2 md:p-4 text-left">Pet Name</th>
+              <th className="p-2 md:p-4 text-left">Veterinarian</th>
+              <th className="p-2 md:p-4 text-left">Date</th>
+              <th className="p-2 md:p-4 text-left">Breed</th>
+              <th className="p-2 md:p-4 text-left">Reason</th>
             </tr>
           </thead>
           <tbody>
-            {filteredRecords.map((record, index) => (
-              <tr
-                key={index}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-300"}
-              >
-                <td className="p-2 md:p-4">{record.recordId}</td>
-                <td className="p-2 md:p-4">{record.customerName}</td>
-                <td className="text-blue-600 p-2 md:p-4">{record.petName}</td>
-                <td className="p-2 md:p-4">{record.veterinarian}</td>
-                <td className="p-2 md:p-4">{record.date}</td>
-                <td className="p-2 md:p-4">{record.breed}</td>
-                <td className="p-2 md:p-4">{record.reason}</td>
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="text-center py-4">
+                  Loading...
+                </td>
               </tr>
-            ))}
+            ) : filteredRecords.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center py-4">
+                  No records found
+                </td>
+              </tr>
+            ) : (
+              filteredRecords.map((record, index) => (
+                <tr
+                  key={record.appointment_id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-300"}
+                >
+                  <td className="p-2 md:p-4">{record.appointment_id}</td>
+                  <td className="p-2 md:p-4">{record.customer_name}</td>
+                  <td className="text-blue-600 p-2 md:p-4">
+                    {record.pet_name}
+                  </td>
+                  <td className="p-2 md:p-4">{record.veterinarian_name}</td>
+                  <td className="p-2 md:p-4">
+                    {new Date(record.date).toLocaleDateString()}
+                  </td>
+                  <td className="p-2 md:p-4">{record.breed}</td>
+                  <td className="p-2 md:p-4">{record.reason}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

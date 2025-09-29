@@ -4,7 +4,7 @@ export default function AddStaff({ isOpen, onClose, onAddStaff }) {
   const [formData, setFormData] = useState({
     name: "",
     position: "",
-    contactNumber: "",
+    contact_number: "",
     email: "",
   });
 
@@ -107,8 +107,8 @@ export default function AddStaff({ isOpen, onClose, onAddStaff }) {
                 </label>
                 <input
                   type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
+                  name="contact_number"
+                  value={formData.contact_number}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
