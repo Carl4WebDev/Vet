@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getPatientsClinic } from "../api/get/getPatientClinic";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ✅ Correct way
 
 function PatientRecords() {
   const clinicId = localStorage.getItem("clinic_id");
@@ -32,6 +34,56 @@ function PatientRecords() {
     if (end) return recordDate <= end;
     return true;
   });
+  const handleExportPDF = () => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "A4",
+    });
+
+    doc.setFontSize(16);
+    doc.text("Patient Records", 40, 40);
+
+    const tableColumn = [
+      "Record ID",
+      "Customer Name",
+      "Pet Name",
+      "Veterinarian",
+      "Date",
+      "Breed",
+      "Reason",
+    ];
+
+    const tableRows = filteredRecords.map((record) => [
+      record.appointment_id,
+      record.customer_name,
+      record.pet_name,
+      record.veterinarian_name,
+      new Date(record.date).toLocaleDateString(),
+      record.breed,
+      record.reason,
+    ]);
+
+    // ✅ use autoTable function
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 60,
+      styles: {
+        fontSize: 10,
+        cellPadding: 5,
+      },
+      headStyles: {
+        fillColor: [128, 128, 128],
+        textColor: 255,
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240],
+      },
+    });
+
+    doc.save("patient_records.pdf");
+  };
 
   return (
     <div className="p-2 max-w-6xl mx-auto">
@@ -41,8 +93,8 @@ function PatientRecords() {
       <div className="flex justify-center sm:justify-between items-center flex-wrap">
         <h2 className="text-3xl font-bold mb-6">Patient Records</h2>
 
-        {/* Date Filters */}
-        <div className="flex gap-4 mb-6 flex-wrap justify-center">
+        {/* Date Filters + PDF Button */}
+        <div className="flex gap-4 mb-6 flex-wrap justify-center items-end">
           <div>
             <label
               htmlFor="startDate"
@@ -73,6 +125,12 @@ function PatientRecords() {
               className="border border-gray-300 rounded px-3 py-2"
             />
           </div>
+          <button
+            onClick={handleExportPDF}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded"
+          >
+            📄 Export PDF
+          </button>
         </div>
       </div>
 

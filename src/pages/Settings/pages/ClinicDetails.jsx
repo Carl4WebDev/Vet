@@ -1,17 +1,29 @@
 import { useState } from "react";
+import { changeInfoClinic } from "../../../api/put/changeInfoClinic";
+
+const clinicId = localStorage.getItem("clinic_id");
 
 const ClinicDetails = () => {
-  const [preview, setPreview] = useState("/default-dog.png"); // set your default image
+  const [preview, setPreview] = useState("/default-dog.png");
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const [formData, setFormData] = useState({
-    clinicName: "Enter Clinic Name...",
-    email: "Enter Email...",
-    address: "Enter Address...",
-    phone: "Enter Phone Number...",
+    clinicName: "",
+    phone: "",
+    street: "",
+    city: "",
+    province: "",
+    postal_code: "",
+    country: "",
+    unit_number: "",
+    latitude: "",
+    longitude: "",
   });
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setSelectedImage(file);
       setPreview(URL.createObjectURL(file));
     }
   };
@@ -21,12 +33,40 @@ const ClinicDetails = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = async () => {
+    try {
+      const address = {
+        street: formData.street,
+        city: formData.city,
+        province: formData.province,
+        postal_code: formData.postal_code,
+        country: formData.country,
+        unit_number: formData.unit_number,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
+
+      const result = await changeInfoClinic(clinicId, {
+        clinicName: formData.clinicName,
+        phone: formData.phone,
+        address,
+        image: selectedImage,
+      });
+
+      console.log("✅ Update successful:", result);
+      alert("Clinic information updated successfully!");
+    } catch (error) {
+      alert("Failed to update clinic information");
+    }
+  };
+
   return (
     <div className="bg-[#D9D9D9] flex flex-col md:flex-row rounded-[30px] items-center justify-start px-4 md:px-5 py-5 font-roboto">
       <div className="p-4 md:p-8 rounded-3xl w-full md:w-[1101px] max-w-4xl">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Form Section */}
           <div className="flex-1 space-y-5">
+            {/* Clinic Name */}
             <div>
               <label className="block text-sm font-semibold mb-1">
                 Clinic Name:
@@ -38,29 +78,8 @@ const ClinicDetails = () => {
                 className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Contact Email:
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Address:
-              </label>
-              <input
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full md:w-[513px] h-[65px] rounded-[20px] border-[2px] border-gray-400 px-4 text-[16px] outline-none shadow-[0px_4px_5px_5px_#00000040] bg-white"
-              />
-            </div>
+
+            {/* Phone Number */}
             <div>
               <label className="block text-sm font-semibold mb-1">
                 Phone Number:
@@ -74,9 +93,112 @@ const ClinicDetails = () => {
               />
             </div>
 
+            {/* Address Fields */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">
+                Street:
+              </label>
+              <input
+                name="street"
+                value={formData.street}
+                onChange={handleChange}
+                className="w-full md:w-[513px] h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  City:
+                </label>
+                <input
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Province:
+                </label>
+                <input
+                  name="province"
+                  value={formData.province}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Postal Code:
+                </label>
+                <input
+                  name="postal_code"
+                  value={formData.postal_code}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Country:
+                </label>
+                <input
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1">
+                Unit Number:
+              </label>
+              <input
+                name="unit_number"
+                value={formData.unit_number}
+                onChange={handleChange}
+                className="w-full md:w-[513px] h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Latitude:
+                </label>
+                <input
+                  name="latitude"
+                  value={formData.latitude}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  Longitude:
+                </label>
+                <input
+                  name="longitude"
+                  value={formData.longitude}
+                  onChange={handleChange}
+                  className="w-full h-[50px] rounded-[15px] border-[2px] border-gray-400 px-4 text-[16px] outline-none bg-white"
+                />
+              </div>
+            </div>
+
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              <button className="bg-white text-black px-6 py-2 rounded-full border hover:bg-gray-200 transition shadow-[0px_4px_4px_0px_#00000040]">
+              <button
+                onClick={handleSubmit}
+                className="bg-white text-black px-6 py-2 rounded-full border hover:bg-gray-200 transition shadow-[0px_4px_4px_0px_#00000040]"
+              >
                 Confirm
               </button>
               <button className="bg-white text-black px-6 py-2 rounded-full border hover:bg-gray-200 transition shadow-[0px_4px_4px_0px_#00000040]">
@@ -89,7 +211,7 @@ const ClinicDetails = () => {
           <div className="flex flex-col items-center justify-center mb-10 md:mb-20 md:mr-4">
             <img
               src={preview}
-              alt="Clinic "
+              alt="Clinic"
               className="w-[200px] h-[200px] md:w-[246px] md:h-[246px] rounded-full object-cover border border-black bg-white"
             />
             <label

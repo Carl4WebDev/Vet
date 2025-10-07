@@ -5,11 +5,62 @@ import { getVetByClinic } from "../api/get/getVetByClinic";
 export default function Schedule() {
   const [open, setOpen] = useState(false);
   const [appointments, setAppointments] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(""); // Empty means show all appointments
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(""); // calendar date
+  const [searchTerm, setSearchTerm] = useState(""); // free text search
+  const [monthFilter, setMonthFilter] = useState(""); // dropdown month
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear()); // dropdown year
   const [vets, setVets] = useState([]);
   const [selectedVet, setSelectedVet] = useState(null);
 
   const clinicId = localStorage.getItem("clinic_id") || 1;
+
+  // 📅 Calendar states
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth()); // 0-11
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  // ⬅️ Previous month
+  const handlePrevMonth = () => {
+    if (calendarMonth === 0) {
+      setCalendarMonth(11);
+      setCalendarYear((prev) => prev - 1);
+    } else {
+      setCalendarMonth((prev) => prev - 1);
+    }
+  };
+
+  // ➡️ Next month
+  const handleNextMonth = () => {
+    if (calendarMonth === 11) {
+      setCalendarMonth(0);
+      setCalendarYear((prev) => prev + 1);
+    } else {
+      setCalendarMonth((prev) => prev + 1);
+    }
+  };
+
+  const handleDayClick = (day) => {
+    const formatted = `${calendarYear}-${String(calendarMonth + 1).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`;
+    setSelectedDate((prev) => (prev === formatted ? "" : formatted));
+  };
 
   // 🟡 Fetch veterinarians on mount
   useEffect(() => {
@@ -17,21 +68,36 @@ export default function Schedule() {
       const data = await getVetByClinic(clinicId);
       setVets(data);
       if (data.length > 0) {
-        setSelectedVet(data[0]); // Default to first vet
+        setSelectedVet(data[0]);
       }
     };
     fetchVets();
   }, [clinicId]);
 
-  // 🟡 Fetch appointments every time vet or date changes
+  // 🟡 Fetch appointments whenever filters change
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!selectedVet) return;
-      const data = await getAppointmentsByVet(selectedVet.vet_id, selectedDate);
+
+      // Priority: selected date from calendar > search term > month/year dropdown
+      let query = selectedDate || searchTerm;
+      if (!query && monthFilter && yearFilter) {
+        query = `${yearFilter}-${monthFilter}`;
+      }
+
+      const data = await getAppointmentsByVet(selectedVet.vet_id, query);
       setAppointments(data);
+      setFilteredAppointments(data);
     };
+
     fetchAppointments();
-  }, [selectedVet, selectedDate]);
+  }, [selectedVet, selectedDate, searchTerm, monthFilter, yearFilter]);
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from(
+    { length: currentYear - 2020 + 4 },
+    (_, i) => 2020 + i
+  );
 
   const formatTimeRange = (start, end) => {
     const format = (t) => {
@@ -63,17 +129,23 @@ export default function Schedule() {
     }
   };
 
+  // Calendar day generation
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+
   return (
     <div className="min-h-screen bg-white p-4">
       <h1 className="text-xl font-semibold mb-4">Schedule</h1>
 
-      {/* Search Bar */}
-      <div className="flex justify-start mb-4">
+      {/* 🔍 Search Bar + Month/Year filter */}
+      <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-4 mb-4">
         <div className="w-full sm:w-96 bg-gray-200 rounded-full px-4 py-2 flex items-center">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search by day, month, or year..."
             className="w-full bg-transparent focus:outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -81,25 +153,47 @@ export default function Schedule() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Side */}
         <div className="flex flex-col gap-4 w-full lg:w-1/3">
-          {/* Calendar */}
+          {/* 📅 Dynamic Calendar */}
           <div className="bg-white rounded-md shadow p-4">
-            <div className="text-sm font-semibold mb-2">September 2024</div>
+            <div className="flex justify-between items-center mb-2">
+              <button
+                onClick={handlePrevMonth}
+                className="text-gray-600 hover:text-black"
+              >
+                ←
+              </button>
+              <div className="text-sm font-semibold">
+                {monthNames[calendarMonth]} {calendarYear}
+              </div>
+              <button
+                onClick={handleNextMonth}
+                className="text-gray-600 hover:text-black"
+              >
+                →
+              </button>
+            </div>
+
             <div className="grid grid-cols-7 text-center gap-1 text-xs">
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
                 <div key={day} className="font-medium">
                   {day}
                 </div>
               ))}
-              {[...Array(30)].map((_, i) => {
+
+              {Array.from({ length: firstDay }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+
+              {Array.from({ length: daysInMonth }).map((_, i) => {
                 const dayNum = i + 1;
-                const dateStr = `2024-09-${String(dayNum).padStart(2, "0")}`;
-                const isSelected = selectedDate === dateStr;
+                const formatted = `${calendarYear}-${String(
+                  calendarMonth + 1
+                ).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+                const isSelected = selectedDate === formatted;
                 return (
                   <div
-                    key={i}
-                    onClick={
-                      () => setSelectedDate(isSelected ? "" : dateStr) // toggle off if selected again
-                    }
+                    key={dayNum}
+                    onClick={() => handleDayClick(dayNum)}
                     className={`py-1 rounded cursor-pointer ${
                       isSelected
                         ? "bg-blue-200 text-blue-800 font-bold"
@@ -148,7 +242,7 @@ export default function Schedule() {
           </button>
         </div>
 
-        {/* Right Side */}
+        {/* Right Side - Table */}
         <div className="w-full lg:w-2/3 overflow-x-auto">
           <div className="bg-white rounded-md shadow overflow-x-auto">
             <table className="w-full table-auto text-sm">
@@ -164,8 +258,8 @@ export default function Schedule() {
                 </tr>
               </thead>
               <tbody>
-                {appointments.length > 0 ? (
-                  appointments.map((row) => (
+                {filteredAppointments.length > 0 ? (
+                  filteredAppointments.map((row) => (
                     <tr
                       key={row.appointment_id}
                       className={getRowColor(row.status)}

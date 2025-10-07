@@ -3,9 +3,10 @@ import { Eye, EyeOff, X } from "lucide-react";
 import signupBg from "../assets/images/signup-bg.png";
 import navLogo from "../assets/images/nav-logo.png";
 import { registerClinic } from "../api/auth/registerClinic";
-import { Link } from "react-router-dom";
 
+import { useNavigate } from "react-router-dom";
 export default function SignUpPage() {
+  const navigate = useNavigate(); // ✅
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -38,7 +39,6 @@ export default function SignUpPage() {
     const { name, value } = e.target;
     setAddress((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,6 +63,7 @@ export default function SignUpPage() {
       const result = await registerClinic(clinicData);
       setSuccess("Clinic registered successfully!");
       console.log("✅ Registered clinic:", result);
+      navigate("/dashboard"); // ✅ navigate after success
     } catch (err) {
       setError(err.message);
     } finally {
@@ -167,15 +168,13 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <Link to="/dashboard">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
-              >
-                {loading ? "Creating..." : "Create Account"}
-              </button>
-            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
+            >
+              {loading ? "Creating..." : "Create Account"}
+            </button>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {success && <p className="text-green-600 text-sm">{success}</p>}

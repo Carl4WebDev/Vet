@@ -1,52 +1,63 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 import PetMedHistory from "./Modals/PetMedHistory";
+import { getPetMedicalRecords } from "../../../api/get/getPetMedicalRecords";
 
 const PetDetailsPage = () => {
+  const { petId } = useParams();
   const [open, setOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null); // 🟡 Added
+  const [petInfo, setPetInfo] = useState(null);
+  const [medicalHistory, setMedicalHistory] = useState([]);
 
-  const medicalHistory = [
-    {
-      id: 1,
-      date: "3/21/2024",
-      description: "Fecal/Deworming",
-      veterinarian: "Dr. Jorge",
-      diagnosis: "Fecal/Deworming",
-      testPerformed: "Fecal/Deworming",
-      testResult: "None",
-      action: "N/A",
-      medication: "N/A",
-      remarks: "N/A",
-    },
-    {
-      id: 2,
-      date: "3/21/2024",
-      description: "Fecal/Deworming",
-      veterinarian: "Dr. Jorge",
-      diagnosis: "Fecal/Deworming",
-      testPerformed: "Fecal/Deworming",
-      testResult: "None",
-      action: "N/A",
-      medication: "N/A",
-      remarks: "N/A",
-    },
-    {
-      id: 3,
-      date: "9/25/2024",
-      description: "Vaccination",
-      veterinarian: "Dr. Jorge",
-      diagnosis: "None",
-      testPerformed: "Vaccination",
-      testResult: "None",
-      action: "N/A",
-      medication: "N/A",
-      remarks: "N/A",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getPetMedicalRecords(petId);
+        setMedicalHistory(data);
+
+        if (data.length > 0) {
+          const first = data[0];
+          setPetInfo({
+            name: first.pet_name,
+            age: first.pet_age,
+            species: first.pet_species,
+            breed: first.pet_breed,
+            birthday: first.pet_birthday,
+            gender: first.pet_gender,
+            weight: first.pet_weight,
+            bio: first.pet_bio,
+            veterinarian: first.veterinarian_name,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+  }, [petId]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const d = new Date(dateString);
+    return d.toLocaleDateString();
+  };
+
+  const handleCardClick = (record) => {
+    setSelectedRecord(record);
+    setOpen(true);
+  };
 
   return (
     <div className="p-6 space-y-6 font-sans">
-      <PetMedHistory isOpen={open} onClose={() => setOpen(false)} />
+      {/* 🟡 Pass selectedRecord to modal */}
+      <PetMedHistory
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        record={selectedRecord}
+      />
+
       {/* Top Info Card */}
       <div className="border rounded-xl p-6 flex flex-col md:flex-row items-start gap-6 shadow-sm bg-white">
         <div className="flex flex-col gap-4">
@@ -56,7 +67,7 @@ const PetDetailsPage = () => {
             className="w-24 h-24 rounded-full object-cover"
           />
           <Link
-            to="/pet-health-record"
+            to={`/pet-health-record/${petId}`}
             className="p-2 border-black border rounded-lg font-bold"
           >
             + New Health Record
@@ -67,28 +78,28 @@ const PetDetailsPage = () => {
           <div>
             <h2 className="font-bold text-lg mb-2">Pet Information</h2>
             <p>
-              <b>Name:</b> Horgie Jr.
+              <b>Name:</b> {petInfo?.name || "N/A"}
             </p>
             <p>
-              <b>Age:</b> 2 Years Old
+              <b>Age:</b> {petInfo?.age ? `${petInfo.age} Years Old` : "N/A"}
             </p>
             <p>
-              <b>Species:</b> Dog
+              <b>Species:</b> {petInfo?.species || "N/A"}
             </p>
             <p>
-              <b>Breed:</b> Bulldog
+              <b>Breed:</b> {petInfo?.breed || "N/A"}
             </p>
             <p>
-              <b>Birthdate:</b> 2/26/2023
+              <b>Birthdate:</b> {formatDate(petInfo?.birthday)}
             </p>
             <p>
-              <b>Gender:</b> Male
+              <b>Gender:</b> {petInfo?.gender || "N/A"}
             </p>
             <p>
-              <b>Weight:</b> 15kg
+              <b>Weight:</b> {petInfo?.weight ? `${petInfo.weight} kg` : "N/A"}
             </p>
             <p>
-              <b>Veterinarian:</b> Dr. Jorge
+              <b>Veterinarian:</b> {petInfo?.veterinarian || "N/A"}
             </p>
           </div>
 
@@ -101,13 +112,17 @@ const PetDetailsPage = () => {
               <b>Medication:</b> None
             </p>
             <p>
-              <b>Name:</b> Horgie Jr.
+              <b>Name:</b> {petInfo?.name || "N/A"}
             </p>
           </div>
 
           <div>
             <h2 className="font-bold text-lg mb-2">Current Medication</h2>
-            <p>None</p>
+            <p>
+              {medicalHistory.length > 0
+                ? medicalHistory[0].medication_given || "None"
+                : "None"}
+            </p>
           </div>
         </div>
       </div>
@@ -118,42 +133,43 @@ const PetDetailsPage = () => {
       </div>
 
       {/* Medical History Cards */}
-
-      <div
-        onClick={() => setOpen(true)}
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {medicalHistory.map((entry, index) => (
-          <div key={entry.id} className="bg-white p-4 rounded-lg shadow-md">
+          <div
+            key={entry.record_id}
+            onClick={() => handleCardClick(entry)}
+            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition"
+          >
             <h3 className="font-bold text-lg mb-2">
               Medical History {index + 1}
             </h3>
             <p>
-              <b>Date:</b> {entry.date}
+              <b>Date:</b> {formatDate(entry.visit_date)}
             </p>
             <p>
               <b>Description:</b> {entry.description}
             </p>
             <p>
-              <b>Veterinarian:</b> {entry.veterinarian}
+              <b>Veterinarian:</b> {entry.veterinarian_name}
             </p>
             <p>
-              <b>Diagnosis:</b> {entry.diagnosis}
+              <b>Diagnosis:</b> {entry.primary_diagnosis || "N/A"}
             </p>
             <p>
-              <b>Test Performed:</b> {entry.testPerformed}
+              <b>Test Performed:</b>{" "}
+              {entry.fecal_examination || entry.physical_examination || "N/A"}
             </p>
             <p>
-              <b>Test Result:</b> {entry.testResult}
+              <b>Test Result:</b> {entry.test_results || "N/A"}
             </p>
             <p>
-              <b>Action:</b> {entry.action}
+              <b>Action:</b> {entry.key_action || "N/A"}
             </p>
             <p>
-              <b>Medication:</b> {entry.medication}
+              <b>Medication:</b> {entry.medication_given || "N/A"}
             </p>
             <p>
-              <b>Remarks:</b> {entry.remarks}
+              <b>Remarks:</b> {entry.notes || "N/A"}
             </p>
           </div>
         ))}

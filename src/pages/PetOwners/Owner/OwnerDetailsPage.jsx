@@ -71,6 +71,7 @@ export default function OwnerDetailPage() {
 
       {/* Pet List */}
       <PetList pets={owner.pets || []} />
+      {console.log(owner.pets)}
     </div>
   );
 }

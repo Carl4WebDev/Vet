@@ -24,7 +24,6 @@ import DashboardPage from "./pages/DashboardPage";
 import PetOwnersPage from "./pages/PetOwners/PetOwnersPage";
 import PatientRecords from "./pages/PatientRecords";
 import SettingsPage from "./pages/Settings/SettingsPage";
-import OwnerDetailPage from "./pages/PetOwners/Owner/OwnerDetailsPage";
 import PetDetailsPage from "./pages/PetOwners/Pet/PetDetailsPage";
 import PetNewHealthRecord from "./pages/PetOwners/Pet/PetNewHealthRecord";
 import StaffPage from "./pages/Staff/StaffPage";
@@ -34,6 +33,11 @@ import SchedulePage from "./pages/SchedulePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import { logoutClinic } from "./api/auth/logoutClinic";
+import { getClinicDetails } from "./api/get/getClinicDetails";
+import ClinicNotifications from "./pages/ClinicNotifications";
+
+const clinicName = localStorage.getItem("clinic_name");
+const clinicId = localStorage.getItem("clinic_id");
 
 function App() {
   return (
@@ -75,6 +79,53 @@ function DashboardLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMessageIconOpen, setIsMessageIconOpen] = useState(false);
   const location = useLocation();
+
+  const [preview, setPreview] = useState("/default-dog.png");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [formData, setFormData] = useState({
+    clinicName: "",
+    phone: "",
+    street: "",
+    city: "",
+    province: "",
+    postal_code: "",
+    country: "",
+    unit_number: "",
+    latitude: "",
+    longitude: "",
+    image: "", // 🆕 for storing the current image URL
+  });
+
+  useEffect(() => {
+    const fetchClinic = async () => {
+      try {
+        const response = await getClinicDetails(clinicId);
+        const clinic = response.data;
+
+        setFormData({
+          clinicName: clinic.clinic_name || "",
+          phone: clinic.phone_number || "",
+          street: clinic.address?.street || "",
+          city: clinic.address?.city || "",
+          province: clinic.address?.province || "",
+          postal_code: clinic.address?.postal_code || "",
+          country: clinic.address?.country || "",
+          unit_number: clinic.address?.unit_number || "",
+          latitude: clinic.address?.latitude || "",
+          longitude: clinic.address?.longitude || "",
+          image: clinic.image_url || "", // 🆕 keep the image in state
+        });
+
+        if (clinic.image_url) {
+          setPreview(clinic.image_url); // For immediate display in <img />
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchClinic();
+  }, []);
+
   // ✅ Update state when the route changes
   useEffect(() => {
     setIsMessageIconOpen(location.pathname.startsWith("/pet-owner"));
@@ -265,19 +316,23 @@ function DashboardLayout() {
           <div className="flex justify-between items-center px-4 md:px-11">
             <img src={navLogo} className="h-16 md:h-20" alt="Logo" />
             <div className="flex gap-3 md:gap-5 items-center">
-              <div className="bg-white p-2 rounded-full">
-                <BellIcon className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <div className="bg-white p-2 rounded-full">
-                <MessageCircleMore className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
+              <Link to="/notification">
+                <div className="bg-white p-2 rounded-full">
+                  <BellIcon className="h-6 w-6 md:h-8 md:w-8" />
+                </div>
+              </Link>
+              <Link to="/messages">
+                <div className="bg-white p-2 rounded-full">
+                  <MessageCircleMore className="h-6 w-6 md:h-8 md:w-8" />
+                </div>
+              </Link>
               <img
-                src={navProfile}
-                className="h-8 w-8 md:h-10 md:w-10"
+                src={formData.image}
+                className="h-8 w-8 md:h-10 md:w-10 rounded-full"
                 alt="Profile"
               />
               <h1 className=" text-[15px] md:text-2xl font-semibold">
-                Jo Capang Vetter
+                {formData.clinicName}
               </h1>
             </div>
           </div>
@@ -294,10 +349,14 @@ function DashboardLayout() {
             <Route path="/staffs" element={<StaffPage />} />
             <Route path="/messages" element={<MessagePage />} />
             <Route path="/schedule" element={<SchedulePage />} />
+            <Route path="/notification" element={<ClinicNotifications />} />
 
             {/* Pet pages*/}
-            <Route path="/pet-details/*" element={<PetDetailsPage />} />
-            <Route path="/pet-health-record" element={<PetNewHealthRecord />} />
+            <Route path="/pet-details/:petId" element={<PetDetailsPage />} />
+            <Route
+              path="/pet-health-record/:petId"
+              element={<PetNewHealthRecord />}
+            />
           </Routes>
         </div>
       </div>

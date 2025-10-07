@@ -9,6 +9,10 @@ import { addStaff } from "../../api/post/addStaff";
 import { editStaff } from "../../api/put/editStaff";
 import { deleteStaff } from "../../api/delete/deleteStaff";
 
+// ✅ Import jsPDF and autotable
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 const StaffPage = () => {
   const [openAddStaff, setOpenAddStaff] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -83,7 +87,6 @@ const StaffPage = () => {
       (staff.department &&
         staff.department.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // If staff was added with created_at date in DB, use it here; if not, no filtering
     const staffDate = staff.created_at ? new Date(staff.created_at) : null;
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
@@ -94,6 +97,55 @@ const StaffPage = () => {
 
     return matchesSearch && matchesDate;
   });
+
+  // 📄 Export PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "A4",
+    });
+
+    doc.setFontSize(16);
+    doc.text("Staff List", 40, 40);
+
+    const tableColumn = [
+      "Staff Name",
+      "Staff ID",
+      "Position",
+      "Department",
+      "Contact Number",
+      "Email Address",
+    ];
+
+    const tableRows = filteredList.map((staff) => [
+      staff.name,
+      staff.staff_id,
+      staff.position || "-",
+      staff.department || "-",
+      staff.contact_number || "-",
+      staff.email || "-",
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 60,
+      styles: {
+        fontSize: 10,
+        cellPadding: 5,
+      },
+      headStyles: {
+        fillColor: [80, 80, 80],
+        textColor: 255,
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+    });
+
+    doc.save("staff_list.pdf");
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white p-4">
@@ -133,6 +185,8 @@ const StaffPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
+        {/* 📅 Dates + Export Button */}
         <div className="flex flex-wrap gap-2 md:gap-4">
           <div className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded">
             <FaCalendarAlt />
@@ -152,6 +206,12 @@ const StaffPage = () => {
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
+          <button
+            onClick={handleExportPDF}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
+          >
+            📄 Export PDF
+          </button>
           <button
             onClick={() => setOpenAddStaff(true)}
             className="bg-black text-white px-4 py-2 rounded text-sm"

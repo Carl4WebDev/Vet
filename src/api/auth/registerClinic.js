@@ -14,7 +14,7 @@ export const registerClinic = async (clinicData) => {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to register clinic");
     }
-
+    console.log(response);
     return await response.json();
   } catch (error) {
     console.error("Error registering clinic:", error);

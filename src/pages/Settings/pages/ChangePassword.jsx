@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { changeClinicPassword } from "../../../api/put/changeClinicPassword";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
@@ -8,20 +9,36 @@ export default function ChangePassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
+  const clinicId = localStorage.getItem("clinic_id"); // ✅ assuming clinic is logged in
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setError("Password did not match");
-    } else {
-      setError("");
-      alert("Password updated successfully!");
+      return;
+    }
+
+    setError("");
+
+    try {
+      const payload = {
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      };
+
+      const res = await changeClinicPassword(clinicId, payload);
+      alert(res.message || "Password updated successfully!");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      console.error("❌ Failed to change password:", err);
+      setError(err.message);
     }
   };
 
   const inputStyle =
     "w-full h-full px-4 pr-12 text-[16px] sm:text-[18px] rounded-[20px] border-2 font-bold font-[Roboto] focus:outline-none tracking-wide";
-
   const labelStyle = "mb-2 text-[16px] sm:text-[18px] font-bold text-black";
   const inputGroupStyle = "relative w-full h-[55px] sm:h-[65px]";
   const iconStyle =
@@ -47,6 +64,7 @@ export default function ChangePassword() {
               onChange={(e) => setOldPassword(e.target.value)}
               className={`${inputStyle} border-green-400`}
               placeholder="Enter old password"
+              required
             />
             <img
               src={showOld ? "/Eye.png" : "/Eye_off.png"}
@@ -67,6 +85,7 @@ export default function ChangePassword() {
               onChange={(e) => setNewPassword(e.target.value)}
               className={`${inputStyle} border-blue-400`}
               placeholder="Enter new password"
+              required
             />
             <img
               src={showNew ? "/Eye.png" : "/Eye_off.png"}
@@ -96,6 +115,7 @@ export default function ChangePassword() {
                 error ? "border-red-500" : "border-gray-400"
               }`}
               placeholder="Re-enter new password"
+              required
             />
             <img
               src={showConfirm ? "/Eye.png" : "/Eye_off.png"}
@@ -117,6 +137,12 @@ export default function ChangePassword() {
           </button>
           <button
             type="button"
+            onClick={() => {
+              setOldPassword("");
+              setNewPassword("");
+              setConfirmPassword("");
+              setError("");
+            }}
             className="bg-white text-black border border-gray-300 px-6 py-2 rounded-full shadow hover:bg-gray-100 transition w-full"
           >
             Cancel

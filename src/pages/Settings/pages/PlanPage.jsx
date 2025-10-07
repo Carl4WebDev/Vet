@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import { FaCcMastercard } from "react-icons/fa";
 
+import { createPaymentIntent } from "../../../api/paymongo/createPaymentIntent";
+
 export default function PlanPage() {
   const [enabled, setEnabled] = useState(true);
   const [subscription, setSubscription] = useState(null); // 🔹 current plan
@@ -76,15 +78,21 @@ export default function PlanPage() {
   };
 
   // 🟢 Upgrade Plan
-  const handleUpgradePlan = async () => {
+  const handleUpgradePlan = async (plan = "monthly") => {
     try {
-      // TODO: Replace with API call to create checkout session (Stripe)
-      alert("Redirecting to upgrade checkout (demo)");
+      const planId = plan === "monthly" ? 1 : 2; // adjust based on your DB
+      const amount = plan === "monthly" ? 200 : 2280;
+      const userId = localStorage.getItem("user_id");
+
+      const checkoutUrl = await createPaymentIntent(amount, userId, planId);
+
+      // ✅ Redirect to PayMongo Checkout
+      window.location.href = checkoutUrl;
     } catch (err) {
-      console.error("Failed to upgrade", err);
+      console.error("Failed to upgrade:", err);
+      alert("Failed to initiate payment");
     }
   };
-
   return (
     <div className="h-auto bg-white flex justify-center items-center font-roboto p-4">
       <div className="w-full bg-[#D9D9D9] rounded-[30px] shadow-lg p-4 relative">
@@ -118,7 +126,7 @@ export default function PlanPage() {
                 <div className="text-[20px] md:text-[24px]">Yearly</div>
                 <div className="text-[14px] md:text-[16px]">365 Days</div>
                 <button
-                  onClick={handleUpgradePlan}
+                  onClick={() => handleUpgradePlan("yearly")}
                   className="mt-2 md:mt-5 w-full md:w-[208px] h-[32px] border border-gray-600 rounded bg-white hover:bg-gray-100 text-[16px] md:text-[20px]"
                 >
                   Upgrade
