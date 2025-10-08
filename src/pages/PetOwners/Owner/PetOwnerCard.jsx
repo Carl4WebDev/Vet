@@ -1,10 +1,8 @@
-import React from "react";
-
 export default function PetOwnerCard({ owner }) {
   return (
     <div className="bg-gray-200 rounded-lg p-4 shadow-md flex items-center gap-4">
       <img
-        src={owner.photo}
+        src={owner.image_url || "../../../assets/images/nav-profile.png"}
         alt={owner.name}
         className="w-20 h-20 rounded-full object-cover"
       />

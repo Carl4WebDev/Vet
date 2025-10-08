@@ -94,6 +94,7 @@ function DashboardLayout() {
     image: "", // 🆕 for storing the current image URL
   });
 
+  console.log(formData);
   function waitForClinicId(timeout = 5000) {
     return new Promise((resolve, reject) => {
       const start = Date.now();

@@ -2,9 +2,7 @@ export default function OwnerInfoCard({ owner }) {
   return (
     <div className="flex items-start gap-4">
       <img
-        src={
-          owner.photo || "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-        }
+        src={owner.image_url || "../../../assets/images/nav-profile.png"}
         alt={owner.name}
         className="w-20 h-20 rounded-full object-cover"
       />
