@@ -16,7 +16,6 @@ import {
   MessageSquareMoreIcon,
 } from "lucide-react";
 import navLogo from "../src/assets/images/nav-logo.png";
-import navProfile from "../src/assets/images/nav-profile.png";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import "./App.css";
@@ -37,7 +36,6 @@ import { getClinicDetails } from "./api/get/getClinicDetails";
 import ClinicNotifications from "./pages/ClinicNotifications";
 
 const clinicName = localStorage.getItem("clinic_name");
-const clinicId = localStorage.getItem("clinic_id");
 
 function App() {
   return (
@@ -96,12 +94,29 @@ function DashboardLayout() {
     image: "", // 🆕 for storing the current image URL
   });
 
+  function waitForClinicId(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+
+      const interval = setInterval(() => {
+        const id = localStorage.getItem("clinic_id");
+        if (id && id !== "null" && id !== "undefined") {
+          clearInterval(interval);
+          resolve(id);
+        } else if (Date.now() - start > timeout) {
+          clearInterval(interval);
+          reject(new Error("Timed out waiting for clinic_id"));
+        }
+      }, 100); // check every 100ms
+    });
+  }
+
   useEffect(() => {
     const fetchClinic = async () => {
       try {
+        const clinicId = await waitForClinicId(); // ⏳ waits until the value exists
         const response = await getClinicDetails(clinicId);
         const clinic = response.data;
-
         setFormData({
           clinicName: clinic.clinic_name || "",
           phone: clinic.phone_number || "",
@@ -113,16 +128,14 @@ function DashboardLayout() {
           unit_number: clinic.address?.unit_number || "",
           latitude: clinic.address?.latitude || "",
           longitude: clinic.address?.longitude || "",
-          image: clinic.image_url || "", // 🆕 keep the image in state
+          image: clinic.image_url || "",
         });
-
-        if (clinic.image_url) {
-          setPreview(clinic.image_url); // For immediate display in <img />
-        }
+        if (clinic.image_url) setPreview(clinic.image_url);
       } catch (err) {
         console.error(err);
       }
     };
+
     fetchClinic();
   }, []);
 
