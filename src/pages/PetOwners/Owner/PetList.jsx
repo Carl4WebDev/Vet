@@ -5,6 +5,7 @@ import {
   FaBirthdayCake,
   FaWeightHanging,
 } from "react-icons/fa";
+import defaultImage from "../../../assets/images/nav-profile.png";
 
 export default function PetList({ pets }) {
   if (!pets || pets.length === 0) {
@@ -32,7 +33,7 @@ export default function PetList({ pets }) {
             {/* 🐾 Image Section */}
             <div className="flex flex-col items-center bg-gray-50 p-4">
               <img
-                src={pet.image_url || "/default-pet.png"}
+                src={pet.image_url || defaultImage}
                 alt={pet.name}
                 className="w-24 h-24 mb-2 object-cover rounded-full border border-gray-300"
               />

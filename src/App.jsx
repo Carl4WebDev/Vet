@@ -35,6 +35,8 @@ import { logoutClinic } from "./api/auth/logoutClinic";
 import { getClinicDetails } from "./api/get/getClinicDetails";
 import ClinicNotifications from "./pages/ClinicNotifications";
 
+import defaultImage from "./assets/images/nav-profile.png";
+
 const clinicName = localStorage.getItem("clinic_name");
 
 function App() {
@@ -341,7 +343,7 @@ function DashboardLayout() {
                 </div>
               </Link>
               <img
-                src={formData.image}
+                src={formData.image || defaultImage}
                 className="h-8 w-8 md:h-10 md:w-10 rounded-full"
                 alt="Profile"
               />

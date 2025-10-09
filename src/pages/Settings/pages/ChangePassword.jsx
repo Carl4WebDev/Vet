@@ -66,12 +66,6 @@ export default function ChangePassword() {
               placeholder="Enter old password"
               required
             />
-            <img
-              src={showOld ? "/Eye.png" : "/Eye_off.png"}
-              alt="Toggle"
-              onClick={() => setShowOld(!showOld)}
-              className={iconStyle}
-            />
           </div>
         </div>
 
@@ -86,12 +80,6 @@ export default function ChangePassword() {
               className={`${inputStyle} border-blue-400`}
               placeholder="Enter new password"
               required
-            />
-            <img
-              src={showNew ? "/Eye.png" : "/Eye_off.png"}
-              alt="Toggle"
-              onClick={() => setShowNew(!showNew)}
-              className={iconStyle}
             />
           </div>
           <ul className="text-sm text-black mt-3 list-disc list-inside">
@@ -116,12 +104,6 @@ export default function ChangePassword() {
               }`}
               placeholder="Re-enter new password"
               required
-            />
-            <img
-              src={showConfirm ? "/Eye.png" : "/Eye_off.png"}
-              alt="Toggle"
-              onClick={() => setShowConfirm(!showConfirm)}
-              className={iconStyle}
             />
           </div>
           {error && <p className="text-sm text-red-600 mt-1">{error}</p>}

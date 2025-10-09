@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import { getClientsByClinic } from "../api/get/getClientsByClinic"; // 👈 Replace with your actual client fetch API
 const API_BASE = import.meta.env.VITE_API_BASE;
 
+import defaultImage from "../assets/images/nav-profile.png";
+
 // ✅ Socket initialized outside component
 const socket = io(`${API_BASE}`, {
   transports: ["websocket"],
@@ -189,7 +191,7 @@ export default function ChatPage() {
                 onClick={() => selectConversation(conv)}
               >
                 <img
-                  src={conv.avatar}
+                  src={conv.avatar || defaultImage}
                   alt={conv.name}
                   className="h-10 w-10 rounded-full"
                 />
@@ -213,7 +215,7 @@ export default function ChatPage() {
               {/* Header */}
               <div className="flex items-center px-6 py-3 border-b bg-white">
                 <img
-                  src={activeChat.avatar}
+                  src={activeChat.avatar || defaultImage}
                   alt={activeChat.name}
                   className="h-10 w-10 rounded-full"
                 />

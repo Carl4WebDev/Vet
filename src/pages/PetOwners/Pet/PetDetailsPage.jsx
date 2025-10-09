@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import PetMedHistory from "./Modals/PetMedHistory";
 import { getPetMedicalRecords } from "../../../api/get/getPetMedicalRecords";
+import defaultImage from "../../../assets/images/nav-profile.png";
 
 const PetDetailsPage = () => {
   const { petId } = useParams();
@@ -63,7 +64,7 @@ const PetDetailsPage = () => {
       <div className="border rounded-xl p-6 flex flex-col md:flex-row items-start gap-6 shadow-sm bg-white">
         <div className="flex flex-col gap-4">
           <img
-            src={petInfo?.image_url || "/default-pet.png"}
+            src={petInfo?.image_url || defaultImage}
             alt={petInfo?.name || "Pet"}
             className="w-24 h-24 rounded-full object-cover"
           />
