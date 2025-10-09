@@ -1,7 +1,23 @@
 import { useState } from "react";
 import { changeInfoClinic } from "../../../api/put/changeInfoClinic";
 
-const clinicId = localStorage.getItem("clinic_id");
+// const clinicId = localStorage.getItem("clinic_id");
+function waitForClinicId(timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+
+    const interval = setInterval(() => {
+      const id = localStorage.getItem("clinic_id");
+      if (id && id !== "null" && id !== "undefined") {
+        clearInterval(interval);
+        resolve(id);
+      } else if (Date.now() - start > timeout) {
+        clearInterval(interval);
+        reject(new Error("Timed out waiting for clinic_id"));
+      }
+    }, 100); // check every 100ms
+  });
+}
 
 const ClinicDetails = () => {
   const [preview, setPreview] = useState("/default-dog.png");
@@ -45,7 +61,7 @@ const ClinicDetails = () => {
         latitude: formData.latitude,
         longitude: formData.longitude,
       };
-
+      const clinicId = await waitForClinicId(); // ⏳ waits until the value exists
       const result = await changeInfoClinic(clinicId, {
         clinicName: formData.clinicName,
         phone: formData.phone,

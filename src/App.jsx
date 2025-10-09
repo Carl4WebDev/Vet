@@ -37,8 +37,6 @@ import ClinicNotifications from "./pages/ClinicNotifications";
 
 import defaultImage from "./assets/images/nav-profile.png";
 
-const clinicName = localStorage.getItem("clinic_name");
-
 function App() {
   return (
     <Router>
