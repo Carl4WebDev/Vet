@@ -8,6 +8,7 @@ if (!apiKey) {
     "❌ Gemini API key is missing. Did you set VITE_GEMINI_API_KEY in .env?"
   );
 }
+
 const useVetClinicAI = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
