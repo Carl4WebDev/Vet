@@ -15,6 +15,8 @@ export default function PetList({ pets }) {
     );
   }
 
+  console.log("pets");
+  console.log(pets);
   return (
     <div>
       <h2 className="text-xl font-semibold text-white bg-black py-2 px-4 rounded-t">
@@ -30,10 +32,11 @@ export default function PetList({ pets }) {
             {/* 🐾 Image Section */}
             <div className="flex flex-col items-center bg-gray-50 p-4">
               <img
-                src="https://cdn-icons-png.flaticon.com/512/616/616408.png"
+                src={pet.image_url || "/default-pet.png"}
                 alt={pet.name}
-                className="w-24 h-24 mb-2"
+                className="w-24 h-24 mb-2 object-cover rounded-full border border-gray-300"
               />
+
               <h3 className="text-lg font-bold">{pet.name}</h3>
               <p className="text-gray-600 capitalize">{pet.species}</p>
             </div>

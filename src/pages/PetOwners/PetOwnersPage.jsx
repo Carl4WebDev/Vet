@@ -8,7 +8,7 @@ export default function PetOwnersPage() {
   const location = useLocation();
   const isViewingDetail = location.pathname.startsWith("/pet-owner/owner/");
   const clinicId = localStorage.getItem("clinic_id");
-
+  console.log(clinicId);
   const [owners, setOwners] = useState([]);
   const [filter, setFilter] = useState("");
 

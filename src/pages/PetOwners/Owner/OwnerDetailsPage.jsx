@@ -15,6 +15,8 @@ export default function OwnerDetailPage() {
   const [owner, setOwner] = useState(location.state?.owner || null);
   const [loading, setLoading] = useState(!location.state?.owner);
 
+  console.log("owner");
+  console.log(owner);
   useEffect(() => {
     if (owner) return; // already got from state, skip fetch
 
@@ -71,7 +73,6 @@ export default function OwnerDetailPage() {
 
       {/* Pet List */}
       <PetList pets={owner.pets || []} />
-      {console.log(owner.pets)}
     </div>
   );
 }

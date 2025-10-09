@@ -20,6 +20,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 
+  console.log("clients");
+  console.log(clients);
   console.log(conversations);
 
   // ✅ Load clinic user_id and connect socket
@@ -51,9 +53,10 @@ export default function ChatPage() {
         const formatted = clientsList.map((c) => ({
           id: c.user_id,
           name: c.client_name || "",
-          avatar: c.avatar || "/default-avatar.png",
+          avatar: c.image_url || "/default-avatar.png", // ✅ use backend image_url
           lastMessage: "Start a conversation...",
         }));
+
         setConversations(formatted);
       } catch (err) {
         console.error("Failed to load clients", err);

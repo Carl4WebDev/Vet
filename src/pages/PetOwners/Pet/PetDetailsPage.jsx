@@ -28,6 +28,7 @@ const PetDetailsPage = () => {
             weight: first.pet_weight,
             bio: first.pet_bio,
             veterinarian: first.veterinarian_name,
+            image_url: first.pet_image_url, // 🆕 Added here ✅
           });
         }
       } catch (err) {
@@ -62,10 +63,11 @@ const PetDetailsPage = () => {
       <div className="border rounded-xl p-6 flex flex-col md:flex-row items-start gap-6 shadow-sm bg-white">
         <div className="flex flex-col gap-4">
           <img
-            src="https://placedog.net/100/100?id=1"
-            alt="Pet"
+            src={petInfo?.image_url || "/default-pet.png"}
+            alt={petInfo?.name || "Pet"}
             className="w-24 h-24 rounded-full object-cover"
           />
+
           <Link
             to={`/pet-health-record/${petId}`}
             className="p-2 border-black border rounded-lg font-bold"
