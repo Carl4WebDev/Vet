@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = import.meta.env.VITE_REACT_APP_GEMINI_API_KEY;
+const apiKey =
+  import.meta.env.VITE_REACT_APP_GEMINI_API_KEY ||
+  "AIzaSyA9JRXjrS3PbtHL5wwP0ew_6PEvCFcVoAU";
 
 if (!apiKey) {
   console.error(
