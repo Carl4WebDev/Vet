@@ -185,7 +185,7 @@ function DashboardPage() {
                     <td className="p-2 md:p-4">
                       {row.type || "Not Specified"}
                     </td>
-                    <td className="p-2 md:p-4">{row.name}</td>
+                    <td className="p-2 md:p-4">{row.vet_name}</td>
                     <td className={`p-2 md:p-4 ${statusClass}`}>
                       {row.status}
                     </td>
