@@ -9,6 +9,10 @@ export default function AddHealthRecord() {
   const clinicId = localStorage.getItem("clinic_id");
 
   const [vets, setVets] = useState([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [files, setFiles] = useState([]);
+
   const [form, setForm] = useState({
     visit_date: "",
     visit_time: "",
@@ -35,7 +39,7 @@ export default function AddHealthRecord() {
     notes: "",
   });
 
-  // Fetch veterinarians for dropdown
+  // Fetch veterinarians
   useEffect(() => {
     const fetchVets = async () => {
       try {
@@ -48,7 +52,7 @@ export default function AddHealthRecord() {
     if (clinicId) fetchVets();
   }, [clinicId]);
 
-  // Handle form input changes
+  // Handle form input
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     setForm((prev) => ({
@@ -57,16 +61,32 @@ export default function AddHealthRecord() {
     }));
   };
 
-  // Submit the form
+  // Handle multiple file selections (append instead of replace)
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles((prev) => [...prev, ...selectedFiles]);
+  };
+
+  // ❌ Remove selected file
+  const handleRemoveFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ✅ Submit using your existing API call
   const handleSubmit = async () => {
     try {
       console.log("🚀 Sending payload:", form);
-      await createPetMedicalRecord(petId, form);
+      const recordData = await createPetMedicalRecord(petId, form, files);
+
       alert("Health record added successfully");
       navigate(-1);
     } catch (err) {
       console.error("❌ Failed to save health record:", err);
-      alert("Failed to save health record");
+      setErrorMessage(
+        err?.message ||
+          "An unexpected error occurred while saving the health record."
+      );
+      setShowErrorModal(true);
     }
   };
 
@@ -125,6 +145,8 @@ export default function AddHealthRecord() {
           {/* Left */}
           <div>
             <h2 className="text-lg font-semibold mb-4">Visit Information</h2>
+
+            {/* Veterinarian Dropdown */}
             <div className="mb-2">
               <label className="block text-sm font-medium">
                 Veterinarian *
@@ -139,10 +161,12 @@ export default function AddHealthRecord() {
                 {vets.map((vet) => (
                   <option key={vet.vet_id} value={vet.vet_id}>
                     {vet.vet_name}
+                    {console.log("vet name" + typeof vet.vet_id)}
                   </option>
                 ))}
               </select>
             </div>
+
             <div className="mb-2">
               <label className="block text-sm font-medium">
                 Chief Complaint *
@@ -155,6 +179,7 @@ export default function AddHealthRecord() {
                 className="w-full border rounded p-2"
               />
             </div>
+
             <div className="mb-4">
               <label className="block text-sm font-medium">Visit Reason</label>
               <input
@@ -177,6 +202,7 @@ export default function AddHealthRecord() {
                 className="w-full border rounded p-2"
               />
             </div>
+
             <div className="mb-2">
               <label className="block text-sm">Physical Examination</label>
               <input
@@ -187,10 +213,41 @@ export default function AddHealthRecord() {
                 className="w-full border rounded p-2"
               />
             </div>
+
+            {/* 🩺 Attach Documents */}
+            <h2 className="text-lg font-semibold mb-2">Attach Documents</h2>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              className="border rounded p-2 w-full mb-3"
+            />
+
+            {files.length > 0 && (
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                {files.map((file, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center bg-gray-100 rounded p-2"
+                  >
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Right */}
           <div>
+            {/* Vital Signs */}
             <h2 className="text-lg font-semibold mb-4">Vital Signs</h2>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
@@ -236,6 +293,7 @@ export default function AddHealthRecord() {
               </div>
             </div>
 
+            {/* Treatment & Diagnosis */}
             <h2 className="text-lg font-semibold mb-4">
               Treatment and Medication
             </h2>
@@ -291,6 +349,19 @@ export default function AddHealthRecord() {
               onChange={handleChange}
               className="w-full border rounded p-2 mb-2"
             />
+
+            {/* Notes */}
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">Additional Notes</h2>
+              <textarea
+                name="notes"
+                rows="4"
+                placeholder="Add any extra notes or observations..."
+                value={form.notes}
+                onChange={handleChange}
+                className="w-full border rounded p-2 resize-none"
+              ></textarea>
+            </div>
           </div>
         </div>
 
@@ -309,6 +380,24 @@ export default function AddHealthRecord() {
           </button>
         </div>
       </div>
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white w-[90%] max-w-md rounded-lg shadow-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-red-600 mb-3">
+              Failed to Save Health Record
+            </h2>
+            <p className="text-gray-700 mb-6">{errorMessage}</p>
+            <button
+              onClick={() => setShowErrorModal(false)}
+              className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

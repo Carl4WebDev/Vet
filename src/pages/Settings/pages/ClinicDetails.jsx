@@ -22,6 +22,9 @@ function waitForClinicId(timeout = 5000) {
 const ClinicDetails = () => {
   const [preview, setPreview] = useState("/default-dog.png");
   const [selectedImage, setSelectedImage] = useState(null);
+  // ✅ Modal state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const [formData, setFormData] = useState({
     clinicName: "",
@@ -61,18 +64,24 @@ const ClinicDetails = () => {
         latitude: formData.latitude,
         longitude: formData.longitude,
       };
-      const clinicId = await waitForClinicId(); // ⏳ waits until the value exists
-      const result = await changeInfoClinic(clinicId, {
+
+      const clinicId = await waitForClinicId();
+      await changeInfoClinic(clinicId, {
         clinicName: formData.clinicName,
         phone: formData.phone,
         address,
         image: selectedImage,
       });
 
-      console.log("✅ Update successful:", result);
-      alert("Clinic information updated successfully!");
+      // ✅ Show success modal
+      setShowSuccess(true);
+
+      // ⏳ Refresh entire page after short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
-      alert("Failed to update clinic information");
+      setShowError(true);
     }
   };
 
@@ -224,6 +233,7 @@ const ClinicDetails = () => {
           </div>
 
           {/* Right Profile Image Upload */}
+          {/* Right Profile Image Upload */}
           <div className="flex flex-col items-center justify-center mb-10 md:mb-20 md:mr-4">
             <img
               src={preview}
@@ -246,6 +256,39 @@ const ClinicDetails = () => {
           </div>
         </div>
       </div>
+      {/* ✅ Success Modal */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-lg text-center max-w-sm">
+            <h2 className="text-xl font-semibold mb-2 text-green-600">
+              ✅ Success!
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Clinic information updated successfully.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ❌ Error Modal */}
+      {showError && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-lg text-center max-w-sm">
+            <h2 className="text-xl font-semibold mb-2 text-red-600">
+              ❌ Error
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Failed to update clinic information. Please try again.
+            </p>
+            <button
+              onClick={() => setShowError(false)}
+              className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

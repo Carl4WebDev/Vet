@@ -301,24 +301,6 @@ function DashboardLayout() {
                 Logout
               </NavLink>
             </li>
-            {isMessageIconOpen && (
-              <li>
-                <NavLink
-                  to="/messages"
-                  className={({ isActive }) =>
-                    `p-2 rounded flex justify-center items-center gap-4 mt-10 ${
-                      isActive
-                        ? "bg-black text-white"
-                        : "hover:bg-black hover:text-white"
-                    }`
-                  }
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                >
-                  <MessageSquareMoreIcon />
-                  Message
-                </NavLink>
-              </li>
-            )}
           </ul>
         </nav>
       </div>

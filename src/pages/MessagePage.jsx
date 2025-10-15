@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import { getClientsByClinic } from "../api/get/getClientsByClinic"; // 👈 Replace with your actual client fetch API
+// import { getClientsByClinic } from "../api/get/getClientsByClinic"; // 👈 Replace with your actual client fetch API
+import { getAllClients } from "../updated-api/getAllClients";
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 import defaultImage from "../assets/images/nav-profile.png";
@@ -48,7 +49,7 @@ export default function ChatPage() {
 
       // Load clients list
       try {
-        const clientsList = await getClientsByClinic(storedUserId);
+        const clientsList = await getAllClients(storedUserId);
         setClients(clientsList);
 
         // Convert to conversation structure
