@@ -1,5 +1,3 @@
-const API_BASE = import.meta.env.VITE_API_BASE;
-
 /**
  * 🧠 Fetch all clients (with main image)
  * Example response:
@@ -13,6 +11,9 @@ const API_BASE = import.meta.env.VITE_API_BASE;
  *   }
  * ]
  */
+
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 export async function getAllClients() {
   try {
     const res = await fetch(`${API_BASE}/clients-updated/all`);

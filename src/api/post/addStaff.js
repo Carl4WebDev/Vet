@@ -1,7 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_BASE;
+
 export async function addStaff(staffData) {
   try {
-    const response = await fetch(`${API_BASE}/staff/add-staff`, {
+    const res = await fetch(`${API_BASE}/staff/add-staff`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -9,14 +10,16 @@ export async function addStaff(staffData) {
       body: JSON.stringify(staffData),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to add staff");
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("❌ Failed to add staff:", data.message);
+      throw new Error(data.message || "Failed to add staff");
     }
 
-    const data = await response.json();
     return data.data;
   } catch (error) {
-    console.error("Error adding staff:", error);
+    console.error("❌ Error adding staff:", error.message);
     throw error;
   }
 }
