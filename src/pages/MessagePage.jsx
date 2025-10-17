@@ -23,10 +23,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 
-  console.log("clients");
-  console.log(clients);
-  console.log(conversations);
-
   // ✅ Load clinic user_id and connect socket
   useEffect(() => {
     const initChat = async () => {
@@ -35,7 +31,7 @@ export default function ChatPage() {
         setLoading(false);
         return;
       }
-
+      // console.log(storedUserId);
       setClinicUserId(storedUserId);
 
       if (!socket.connected) {
@@ -111,6 +107,10 @@ export default function ChatPage() {
     if (!clinicUserId || !isConnected) return;
     setActiveChat(conversation);
     setMessages([]);
+    // console.log("🔹 Clinic joining:", {
+    //   senderId: clinicUserId,
+    //   receiverId: conversation.id,
+    // });
 
     socket.emit("joinPrivate", {
       senderId: clinicUserId,

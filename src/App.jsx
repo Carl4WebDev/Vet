@@ -35,6 +35,8 @@ import { logoutClinic } from "./api/auth/logoutClinic";
 import { getClinicDetails } from "./api/get/getClinicDetails";
 import ClinicNotifications from "./pages/ClinicNotifications";
 
+import VetClinicChatbot from "./components/VetClinicChatbot";
+
 import defaultImage from "./assets/images/nav-profile.png";
 
 function App() {
@@ -357,6 +359,7 @@ function DashboardLayout() {
             />
           </Routes>
         </div>
+        <VetClinicChatbot />
       </div>
     </div>
   );
