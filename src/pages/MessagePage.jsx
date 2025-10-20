@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // ✅ added useRef
 import { io } from "socket.io-client";
-// import { getClientsByClinic } from "../api/get/getClientsByClinic"; // 👈 Replace with your actual client fetch API
 import { getAllClients } from "../updated-api/getAllClients";
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -23,6 +22,9 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
 
+  // ✅ Ref for auto-scroll
+  const messagesEndRef = useRef(null);
+
   // ✅ Load clinic user_id and connect socket
   useEffect(() => {
     const initChat = async () => {
@@ -31,7 +33,7 @@ export default function ChatPage() {
         setLoading(false);
         return;
       }
-      // console.log(storedUserId);
+
       setClinicUserId(storedUserId);
 
       if (!socket.connected) {
@@ -52,7 +54,7 @@ export default function ChatPage() {
         const formatted = clientsList.map((c) => ({
           id: c.user_id,
           name: c.client_name || "",
-          avatar: c.image_url || "/default-avatar.png", // ✅ use backend image_url
+          avatar: c.image_url || "/default-avatar.png",
           lastMessage: "Start a conversation...",
         }));
 
@@ -102,15 +104,16 @@ export default function ChatPage() {
     };
   }, [isConnected, clinicUserId, activeChat]);
 
+  // ✅ Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, activeChat]);
+
   // ✅ Select conversation
   const selectConversation = (conversation) => {
     if (!clinicUserId || !isConnected) return;
     setActiveChat(conversation);
     setMessages([]);
-    // console.log("🔹 Clinic joining:", {
-    //   senderId: clinicUserId,
-    //   receiverId: conversation.id,
-    // });
 
     socket.emit("joinPrivate", {
       senderId: clinicUserId,
@@ -210,7 +213,7 @@ export default function ChatPage() {
         </div>
 
         {/* Chat window */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full">
           {activeChat ? (
             <>
               {/* Header */}
@@ -256,17 +259,20 @@ export default function ChatPage() {
                     </div>
                   ))
                 )}
+
+                {/* ✅ Scroll anchor */}
+                <div ref={messagesEndRef} />
               </div>
 
-              {/* Input */}
-              <div className="bg-white border-t p-3 flex items-center">
+              {/* ✅ Sticky Input (always visible) */}
+              <div className="bg-white border-t p-3 flex items-center sticky bottom-0">
                 <input
                   type="text"
                   className="flex-1 border rounded-full px-4 py-2 mx-2 focus:ring-1 focus:ring-indigo-500 outline-none"
                   placeholder="Type a message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  // onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                  onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                   disabled={!isConnected}
                 />
                 <button
