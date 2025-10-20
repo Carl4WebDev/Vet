@@ -21,8 +21,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(""); // ✅ added
 
-  // ✅ Ref for auto-scroll
   const messagesEndRef = useRef(null);
 
   // ✅ Load clinic user_id and connect socket
@@ -36,21 +36,17 @@ export default function ChatPage() {
 
       setClinicUserId(storedUserId);
 
-      if (!socket.connected) {
-        socket.connect();
-      }
+      if (!socket.connected) socket.connect();
 
       socket.on("connect", () => {
         socket.emit("registerUser", storedUserId);
         setIsConnected(true);
       });
 
-      // Load clients list
       try {
         const clientsList = await getAllClients(storedUserId);
         setClients(clientsList);
 
-        // Convert to conversation structure
         const formatted = clientsList.map((c) => ({
           id: c.user_id,
           name: c.client_name || "",
@@ -75,17 +71,13 @@ export default function ChatPage() {
     };
   }, []);
 
-  // ✅ Socket listeners for messages
+  // ✅ Socket listeners
   useEffect(() => {
     if (!isConnected) return;
 
-    const handleLoadMessages = (oldMessages) => {
-      setMessages(oldMessages);
-    };
-
+    const handleLoadMessages = (oldMessages) => setMessages(oldMessages);
     const handleReceiveMessage = (message) => {
       setMessages((prev) => [...prev, message]);
-      // Update conversation preview
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === message.senderId
@@ -104,36 +96,29 @@ export default function ChatPage() {
     };
   }, [isConnected, clinicUserId, activeChat]);
 
-  // ✅ Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, activeChat]);
 
-  // ✅ Select conversation
   const selectConversation = (conversation) => {
     if (!clinicUserId || !isConnected) return;
     setActiveChat(conversation);
     setMessages([]);
-
     socket.emit("joinPrivate", {
       senderId: clinicUserId,
       receiverId: conversation.id,
     });
   };
 
-  // ✅ Send message
   const sendMessage = () => {
     if (!input.trim() || !activeChat || !clinicUserId) return;
-
     const newMsg = {
       senderId: clinicUserId,
       receiverId: activeChat.id,
       text: input,
     };
-
     socket.emit("sendPrivateMessage", newMsg);
     setInput("");
-
     setConversations((prev) =>
       prev.map((conv) =>
         conv.id === activeChat.id ? { ...conv, lastMessage: input } : conv
@@ -173,6 +158,11 @@ export default function ChatPage() {
     );
   }
 
+  // ✅ Filtered list for search
+  const filteredConversations = conversations.filter((conv) =>
+    conv.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="h-[90vh] flex flex-col">
       <div className="flex flex-1 bg-gray-100">
@@ -185,30 +175,50 @@ export default function ChatPage() {
           >
             Clients
           </div>
+
+          {/* ✅ Search Bar */}
+          <div className="p-3 border-b border-gray-200">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search clients..."
+              className="w-full border border-gray-300 rounded-full px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+            />
+          </div>
+
           <div className="flex-1 overflow-y-auto">
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                className={`flex items-center px-4 py-3 border-b border-gray-100 cursor-pointer ${
-                  activeChat?.id === conv.id ? "bg-blue-50" : "hover:bg-gray-50"
-                }`}
-                onClick={() => selectConversation(conv)}
-              >
-                <img
-                  src={conv.avatar || defaultImage}
-                  alt={conv.name}
-                  className="h-10 w-10 rounded-full"
-                />
-                <div className="ml-3 min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {conv.name}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {conv.lastMessage}
-                  </p>
+            {filteredConversations.length > 0 ? (
+              filteredConversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className={`flex items-center px-4 py-3 border-b border-gray-100 cursor-pointer ${
+                    activeChat?.id === conv.id
+                      ? "bg-blue-50"
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => selectConversation(conv)}
+                >
+                  <img
+                    src={conv.avatar || defaultImage}
+                    alt={conv.name}
+                    className="h-10 w-10 rounded-full"
+                  />
+                  <div className="ml-3 min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {conv.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {conv.lastMessage}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-gray-500 mt-4 text-sm">
+                No matching clients
+              </p>
+            )}
           </div>
         </div>
 
@@ -216,7 +226,6 @@ export default function ChatPage() {
         <div className="flex-1 flex flex-col h-full">
           {activeChat ? (
             <>
-              {/* Header */}
               <div className="flex items-center px-6 py-3 border-b bg-white">
                 <img
                   src={activeChat.avatar || defaultImage}
@@ -231,7 +240,6 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* Messages */}
               <div className="flex-1 p-4 overflow-y-auto bg-gray-100">
                 {messages.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
@@ -259,12 +267,9 @@ export default function ChatPage() {
                     </div>
                   ))
                 )}
-
-                {/* ✅ Scroll anchor */}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* ✅ Sticky Input (always visible) */}
               <div className="bg-white border-t p-3 flex items-center sticky bottom-0">
                 <input
                   type="text"
