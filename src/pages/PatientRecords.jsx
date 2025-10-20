@@ -3,6 +3,8 @@ import { getPatientsClinic } from "../api/get/getPatientClinic";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; // ✅ Correct way
 
+import { Link } from "react-router-dom";
+
 function PatientRecords() {
   const clinicId = localStorage.getItem("clinic_id");
   const [startDate, setStartDate] = useState("");
@@ -10,7 +12,10 @@ function PatientRecords() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  console.log("records");
+  console.log(records);
   // Fetch patient records from backend
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await getPatientsClinic(clinicId);
@@ -168,9 +173,11 @@ function PatientRecords() {
                 >
                   <td className="p-2 md:p-4">{record.appointment_id}</td>
                   <td className="p-2 md:p-4">{record.customer_name}</td>
-                  <td className="text-blue-600 p-2 md:p-4">
-                    {record.pet_name}
-                  </td>
+                  <Link to={`/pet-details/${record.pet_id}`}>
+                    <td className="text-blue-600 p-2 md:p-4">
+                      {record.pet_name}
+                    </td>
+                  </Link>
                   <td className="p-2 md:p-4">{record.veterinarian_name}</td>
                   <td className="p-2 md:p-4">
                     {new Date(record.date).toLocaleDateString()}
