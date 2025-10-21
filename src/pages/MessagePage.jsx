@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef } from "react"; // ✅ added useRef
 import { io } from "socket.io-client";
 import { getAllClients } from "../updated-api/getAllClients";
+import { useChat } from "../context/ChatContext"; // ✅ integrate global context
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 import defaultImage from "../assets/images/nav-profile.png";
 
-// ✅ Socket initialized outside component
+// ✅ Added reconnection support for reliability
 const socket = io(`${API_BASE}`, {
   transports: ["websocket"],
   withCredentials: true,
   autoConnect: false,
+  reconnection: true, // ✅ ensures auto-reconnect
+  reconnectionAttempts: 10,
+  reconnectionDelay: 2000,
 });
 
 export default function ChatPage() {
@@ -21,7 +25,10 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // ✅ added
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // ✅ Global chat context
+  const { unreadCounts, setUnreadCounts } = useChat();
 
   const messagesEndRef = useRef(null);
 
@@ -36,11 +43,19 @@ export default function ChatPage() {
 
       setClinicUserId(storedUserId);
 
+      // ✅ Always connect and immediately register the clinic user
       if (!socket.connected) socket.connect();
+      socket.emit("registerUser", storedUserId);
+
+      // ✅ Auto re-register on reconnect (in case of disconnection)
+      socket.on("reconnect", () => {
+        socket.emit("registerUser", storedUserId);
+        console.log("🔄 Reconnected and re-registered clinic:", storedUserId);
+      });
 
       socket.on("connect", () => {
-        socket.emit("registerUser", storedUserId);
         setIsConnected(true);
+        console.log("✅ Connected to socket as clinic:", storedUserId);
       });
 
       try {
@@ -50,11 +65,27 @@ export default function ChatPage() {
         const formatted = clientsList.map((c) => ({
           id: c.user_id,
           name: c.client_name || "",
-          avatar: c.image_url || "/default-avatar.png",
+          avatar: c.image_url || defaultImage,
           lastMessage: "Start a conversation...",
         }));
 
         setConversations(formatted);
+
+        // ✅ Auto-join all client rooms to receive messages instantly
+        const joinedRooms = new Set();
+        clientsList.forEach((c) => {
+          const roomId = c.user_id;
+          if (!roomId || joinedRooms.has(roomId)) return;
+          joinedRooms.add(roomId);
+          try {
+            socket.emit("joinPrivate", {
+              senderId: storedUserId,
+              receiverId: roomId,
+            });
+          } catch (err) {
+            console.warn("⚠️ Failed to join room:", roomId, err);
+          }
+        });
       } catch (err) {
         console.error("Failed to load clients", err);
       } finally {
@@ -66,6 +97,7 @@ export default function ChatPage() {
 
     return () => {
       socket.off("connect");
+      socket.off("reconnect");
       socket.disconnect();
       setIsConnected(false);
     };
@@ -76,8 +108,12 @@ export default function ChatPage() {
     if (!isConnected) return;
 
     const handleLoadMessages = (oldMessages) => setMessages(oldMessages);
+
     const handleReceiveMessage = (message) => {
+      if (!message) return;
+
       setMessages((prev) => [...prev, message]);
+
       setConversations((prev) =>
         prev.map((conv) =>
           conv.id === message.senderId
@@ -85,6 +121,17 @@ export default function ChatPage() {
             : conv
         )
       );
+
+      // ✅ Increment unread count only if the message is not from active chat
+      if (
+        message.senderId !== clinicUserId &&
+        message.senderId !== activeChat?.id
+      ) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [message.senderId]: (prev[message.senderId] || 0) + 1,
+        }));
+      }
     };
 
     socket.on("loadMessages", handleLoadMessages);
@@ -96,6 +143,7 @@ export default function ChatPage() {
     };
   }, [isConnected, clinicUserId, activeChat]);
 
+  // ✅ Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, activeChat]);
@@ -104,10 +152,17 @@ export default function ChatPage() {
     if (!clinicUserId || !isConnected) return;
     setActiveChat(conversation);
     setMessages([]);
+
     socket.emit("joinPrivate", {
       senderId: clinicUserId,
       receiverId: conversation.id,
     });
+
+    // ✅ Reset unread count for this client when opened
+    setUnreadCounts((prev) => ({
+      ...prev,
+      [conversation.id]: 0,
+    }));
   };
 
   const sendMessage = () => {
@@ -199,11 +254,19 @@ export default function ChatPage() {
                   }`}
                   onClick={() => selectConversation(conv)}
                 >
-                  <img
-                    src={conv.avatar || defaultImage}
-                    alt={conv.name}
-                    className="h-10 w-10 rounded-full"
-                  />
+                  <div className="relative">
+                    <img
+                      src={conv.avatar || defaultImage}
+                      alt={conv.name}
+                      className="h-10 w-10 rounded-full"
+                    />
+                    {/* ✅ show unread badge if exists */}
+                    {unreadCounts[conv.id] > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
+                        {unreadCounts[conv.id]}
+                      </span>
+                    )}
+                  </div>
                   <div className="ml-3 min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {conv.name}

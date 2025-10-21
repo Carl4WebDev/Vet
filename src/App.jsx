@@ -39,6 +39,8 @@ import VetClinicChatbot from "./components/VetClinicChatbot";
 
 import defaultImage from "./assets/images/nav-profile.png";
 
+import { useChat } from "./context/ChatContext";
+
 function App() {
   return (
     <Router>
@@ -76,6 +78,7 @@ function App() {
 }
 
 function DashboardLayout() {
+  const { totalUnread } = useChat(); // ✅ get global unread count
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMessageIconOpen, setIsMessageIconOpen] = useState(false);
   const location = useLocation();
@@ -319,11 +322,17 @@ function DashboardLayout() {
                   <BellIcon className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
               </Link>
-              <Link to="/messages">
-                <div className="bg-white p-2 rounded-full">
+              <Link to="/messages" className="relative">
+                <div className="bg-white p-2 rounded-full relative">
                   <MessageCircleMore className="h-6 w-6 md:h-8 md:w-8" />
+                  {totalUnread > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 min-w-[18px] text-center shadow">
+                      {totalUnread > 99 ? "99+" : totalUnread}
+                    </span>
+                  )}
                 </div>
               </Link>
+
               <img
                 src={formData.image || defaultImage}
                 className="h-8 w-8 md:h-10 md:w-10 rounded-full"
