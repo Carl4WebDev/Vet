@@ -1,52 +1,41 @@
 import { useEffect, useState } from "react";
-import { FaBell, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaBell, FaCheckCircle } from "react-icons/fa";
+import { getClinicAnnouncements } from "../updated-api/getClinicAnnouncements"; // ✅ new import
 
 export default function ClinicNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 📨 Simulated Fetch (replace with real API)
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      // Example dummy data — replace this with your backend call
-      const data = [
-        {
-          id: 1,
-          title: "New Appointment Booked",
-          message:
-            "A new appointment has been booked by John Doe for Max (Dog).",
-          type: "appointment",
-          created_at: "2025-10-03T14:30:00Z",
-          is_read: false,
-        },
-        {
-          id: 2,
-          title: "Inventory Alert",
-          message: "Low stock alert for Rabies Vaccine. Please restock soon.",
-          type: "inventory",
-          created_at: "2025-10-03T09:15:00Z",
-          is_read: true,
-        },
-        {
-          id: 3,
-          title: "Payment Received",
-          message: "Payment of ₱1,200.00 has been successfully processed.",
-          type: "billing",
-          created_at: "2025-10-02T17:45:00Z",
-          is_read: true,
-        },
-      ];
-      setTimeout(() => {
-        setNotifications(data);
+    const fetchAnnouncements = async () => {
+      try {
+        setLoading(true);
+        const data = await getClinicAnnouncements();
+        // ✅ Transform API data into your UI-friendly structure
+        const formatted = data.map((item) => ({
+          id: item.announcement_id,
+          title: item.title,
+          message: item.content,
+          category: item.category,
+          priority: item.priority,
+          status: item.status,
+          created_at: item.created_at,
+          start_datetime: item.start_datetime,
+          end_datetime: item.end_datetime,
+          is_read: false, // default to unread
+        }));
+        setNotifications(formatted);
+      } catch (err) {
+        console.error("Failed to load announcements:", err);
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     };
 
-    fetchNotifications();
+    fetchAnnouncements();
   }, []);
 
-  // 📅 Format date
+  // 📅 Format date nicely
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleString("en-PH", {
@@ -55,7 +44,7 @@ export default function ClinicNotifications() {
     });
   };
 
-  // 📌 Mark notification as read (simulate)
+  // ✅ Mark single as read
   const markAsRead = (id) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
@@ -67,7 +56,7 @@ export default function ClinicNotifications() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <FaBell className="text-xl text-gray-800" />
-          <h1 className="text-2xl font-semibold">Clinic Notifications</h1>
+          <h1 className="text-2xl font-semibold">Clinic Announcements</h1>
         </div>
         {notifications.length > 0 && (
           <button
@@ -85,11 +74,11 @@ export default function ClinicNotifications() {
 
       {loading ? (
         <p className="text-center py-10 text-gray-500">
-          Loading notifications...
+          Loading announcements...
         </p>
       ) : notifications.length === 0 ? (
         <p className="text-center py-10 text-gray-500">
-          No notifications available.
+          No announcements available.
         </p>
       ) : (
         <ul className="space-y-3">
@@ -107,8 +96,13 @@ export default function ClinicNotifications() {
                   {notif.title}
                 </h3>
                 <p className="text-gray-600 text-sm">{notif.message}</p>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  🗂 Category: {notif.category} | 🔺 Priority: {notif.priority}
+                </p>
+
                 <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(notif.created_at)}
+                  Published: {formatDate(notif.created_at)}
                 </p>
               </div>
 
