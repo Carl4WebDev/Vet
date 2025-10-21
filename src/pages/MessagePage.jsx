@@ -350,27 +350,30 @@ export default function ChatPage() {
                     No messages yet.
                   </div>
                 ) : (
-                  messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`flex mb-3 ${
-                        msg.senderId === clinicUserId
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
+                  messages.map((msg, i) => {
+                    const isClinic =
+                      Number(msg.senderId) === Number(clinicUserId);
+                    return (
                       <div
-                        className={`px-4 py-2 rounded-lg max-w-xs ${
-                          msg.senderId === clinicUserId
-                            ? "bg-indigo-600 text-white"
-                            : "bg-white text-gray-800 border"
+                        key={i}
+                        className={`flex mb-3 ${
+                          isClinic ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {msg.text}
+                        <div
+                          className={`px-4 py-2 rounded-lg max-w-xs ${
+                            isClinic
+                              ? "bg-indigo-600 text-white" // ✅ Clinic (you)
+                              : "bg-gray-200 text-gray-800" // ✅ Client (other)
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
+
                 <div ref={messagesEndRef} />
               </div>
 
