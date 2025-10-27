@@ -37,6 +37,9 @@ export default function AddHealthRecord() {
     test_results: "",
     key_action: "",
     notes: "",
+    // ✅ Added contagious disease fields
+    is_contagious: "",
+    contagious_disease: "",
   });
 
   // Fetch veterinarians
@@ -347,8 +350,44 @@ export default function AddHealthRecord() {
               placeholder="Overall Health"
               value={form.overall_health}
               onChange={handleChange}
-              className="w-full border rounded p-2 mb-2"
+              className="w-full border rounded p-2 mb-4"
             />
+
+            {/* ⚠️ Contagious Disease Section */}
+            <h2 className="text-lg font-semibold mb-4 text-red-600">
+              Contagious Disease Flag
+            </h2>
+            <div className="mb-3">
+              <label className="block text-sm font-medium">
+                Is this a contagious disease?
+              </label>
+              <select
+                name="is_contagious"
+                value={form.is_contagious}
+                onChange={handleChange}
+                className="w-full border rounded p-2"
+              >
+                <option value="">Select</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            {form.is_contagious === "Yes" && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium">
+                  Specify Disease
+                </label>
+                <input
+                  type="text"
+                  name="contagious_disease"
+                  placeholder="e.g., Parvovirus, Rabies"
+                  value={form.contagious_disease}
+                  onChange={handleChange}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+            )}
 
             {/* Notes */}
             <div className="mt-6">

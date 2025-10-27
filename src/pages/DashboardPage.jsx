@@ -15,7 +15,7 @@ import { getPetTypeDistribution } from "../api/get/getPetTypeDistribution";
 import { getVisitPurposeDistribution } from "../api/get/getVisitPurposeDistribution";
 import { getStats } from "../api/get/getStats";
 import { getAttendanceStats } from "../api/get/getAttendanceStats";
-
+import { getContagiousDisease } from "../updated-api/getContagiousDisease";
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
@@ -39,6 +39,37 @@ function DashboardPage() {
 
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [contagiousData, setContagiousData] = useState(null);
+
+  useEffect(() => {
+    const fetchContagiousDisease = async () => {
+      try {
+        const result = await getContagiousDisease(clinicId);
+        setContagiousData({
+          labels: result.map((r) => r.species || "Unknown"),
+          datasets: [
+            {
+              label: "Contagious Cases",
+              data: result.map((r) => r.total_cases),
+              backgroundColor: [
+                "#FF6B6B",
+                "#FFD93D",
+                "#6BCB77",
+                "#4D96FF",
+                "#9D4EDD",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        });
+      } catch (err) {
+        console.error("Failed to load contagious disease data:", err);
+      }
+    };
+
+    fetchContagiousDisease();
+  }, [clinicId]);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -226,27 +257,35 @@ function DashboardPage() {
         </div>
 
         {/* bar graph */}
-        <div className="bg-white shadow rounded-lg mt-10 flex flex-col justify-center items-center">
-          <h3 className="text-xl font-bold mb-4">Appointment Attendance</h3>
-          <div className=" min-w-48 min-h-48 w-full h-96 ">
-            <Bar
-              data={attendanceData || { labels: [], datasets: [] }}
-              options={{
-                indexAxis: "y",
-                responsive: true,
-                scales: {
-                  x: {
-                    beginAtZero: true,
-                    title: { display: true, text: "Number of Clients" },
+        {/* Contagious Disease Pie Chart */}
+        <div className="bg-white shadow w-96 h-96 p-2 rounded-lg flex flex-col justify-center items-center">
+          <h3 className="text-xl font-bold mb-4 text-red-600">
+            Contagious Diseases by Pet Type
+          </h3>
+          <div className="min-w-48 min-h-48 w-full h-80 flex justify-center items-center">
+            {contagiousData ? (
+              <Pie
+                data={contagiousData}
+                options={{
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: "right" },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) =>
+                          `${context.label}: ${context.raw} case${
+                            context.raw !== 1 ? "s" : ""
+                          }`,
+                      },
+                    },
                   },
-                  y: { title: { display: true, text: "Days" }, offset: true },
-                },
-                plugins: { legend: { position: "top" } },
-                datasets: {
-                  bar: { barPercentage: 0.6, categoryPercentage: 0.8 },
-                },
-              }}
-            />
+                }}
+              />
+            ) : (
+              <p className="text-gray-500">
+                Loading contagious disease data...
+              </p>
+            )}
           </div>
         </div>
       </div>

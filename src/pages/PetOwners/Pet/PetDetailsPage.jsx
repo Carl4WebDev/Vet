@@ -68,6 +68,12 @@ const PetDetailsPage = () => {
             alt={petInfo?.name || "Pet"}
             className="w-24 h-24 rounded-full object-cover"
           />
+          {medicalHistory.length > 0 && medicalHistory[0].is_contagious && (
+            <div className="bg-red-100 text-red-700 px-3 py-2 rounded-md text-sm font-semibold shadow-sm">
+              ⚠️ Contagious Disease:{" "}
+              {medicalHistory[0].contagious_disease || "Unspecified"}
+            </div>
+          )}
 
           <Link
             to={`/pet-health-record/${petId}`}
@@ -146,6 +152,14 @@ const PetDetailsPage = () => {
             <h3 className="font-bold text-lg mb-2">
               Medical History {index + 1}
             </h3>
+
+            {/* ⚠️ Contagious Disease Flag */}
+            {entry.is_contagious && (
+              <div className="bg-red-100 text-red-700 px-2 py-1 rounded-md text-xs font-semibold mb-3 inline-block">
+                ⚠️ {entry.contagious_disease || "Contagious Disease"}
+              </div>
+            )}
+
             <p>
               <b>Date:</b> {formatDate(entry.visit_date)}
             </p>
