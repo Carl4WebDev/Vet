@@ -96,13 +96,13 @@ const FreelanceDashboardLayout = () => {
               My Patients
             </Link>
             <Link
-              to="/vet-freelancer/records"
+              to="/vet-freelancer/home/appointments"
               className={`block font-medium hover:text-red-500 ${
-                location.pathname.includes("records") ? "text-red-500" : ""
+                location.pathname.includes("appointments") ? "text-red-500" : ""
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              Records
+              Appointments
             </Link>
             <Link
               to="/vet-freelancer/messages"

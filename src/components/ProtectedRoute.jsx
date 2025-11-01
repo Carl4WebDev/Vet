@@ -14,7 +14,10 @@ export default function ProtectedRoute({
   // 🧩 Handle guest-only pages (like login/register)
   if (guestOnly) {
     if (token) {
-      // already logged in → redirect safely to dashboard
+      // ✅ Already logged in → redirect safely to proper dashboard
+      if (role === "veterinarian") {
+        return <Navigate to="/vet-freelancer/home/dashboard" replace />;
+      }
       return <Navigate to="/dashboard" replace />;
     }
     return children;

@@ -51,6 +51,7 @@ import PetDetailsFreelancer from "./freelancer/pages/PetOwners/PetDetailsFreelan
 import AddHealthRecordFreelancer from "./freelancer/pages/PetOwners/AddHealthRecordFreelancer";
 import Notifications from "./freelancer/pages/Notification";
 import PatientRecordsFreelancer from "./freelancer/pages/patient/PatientRecordsFreelancer";
+import VetFreelancerSchedule from "./freelancer/pages/appointments/VetFreelancerSchedule";
 
 function App() {
   return (
@@ -104,6 +105,7 @@ function App() {
           <Route path="pet-owners" element={<PetOwners />} />
           <Route path="pet-details/:petId" element={<PetDetailsFreelancer />} />
           <Route path="patients" element={<PatientRecordsFreelancer />} />
+          <Route path="appointments" element={<VetFreelancerSchedule />} />
           <Route
             path="add-pet/:petId"
             element={<AddHealthRecordFreelancer />}
