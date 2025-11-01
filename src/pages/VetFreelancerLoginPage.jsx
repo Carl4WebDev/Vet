@@ -98,6 +98,13 @@ export default function VetFreelancerLoginPage() {
         >
           Register as Freelancer
         </button>
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="w-full bg-white text-black border border-black py-2 mt-3 rounded hover:bg-gray-100 transition"
+        >
+          Back to clinic
+        </button>
       </form>
     </div>
   );
