@@ -80,14 +80,14 @@ const FreelanceDashboardLayout = () => {
             <Link
               to="/vet-freelancer/home/pet-owners"
               className={`block font-medium hover:text-red-500 ${
-                location.pathname.includes("patients") ? "text-red-500" : ""
+                location.pathname.includes("pet-owners") ? "text-red-500" : ""
               }`}
               onClick={() => setSidebarOpen(false)}
             >
               Pet Owners
             </Link>
             <Link
-              to="/vet-freelancer/patients"
+              to="/vet-freelancer/home/patients"
               className={`block font-medium hover:text-red-500 ${
                 location.pathname.includes("patients") ? "text-red-500" : ""
               }`}

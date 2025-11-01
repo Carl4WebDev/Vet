@@ -4,7 +4,7 @@ import { getFreelancePetOwners } from "../../api/pet-owners/getFreelancePetOwner
 
 const PetOwners = () => {
   const [owners, setOwners] = useState([]);
-  const vetId = 8;
+  const vetId = localStorage.getItem("vet_id");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedId, setExpandedId] = useState(null);
 

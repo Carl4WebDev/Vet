@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { getFreelancePetDetails } from "../../api/pet-owners/getFreelancePetDetails";
 import jsPDF from "jspdf";
 
+import defaultImg from "../../assets/nav-profile.png";
+
 const PetDetailsFreelancer = () => {
   const { petId } = useParams();
   const navigate = useNavigate();
@@ -172,7 +174,7 @@ const PetDetailsFreelancer = () => {
       <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row justify-between">
         <div className="flex items-center gap-4">
           <img
-            src={pet.pet_image_url || "/pet-default.png"}
+            src={pet.pet_image_url || defaultImg}
             alt="Pet"
             className="w-24 h-24 rounded-full object-cover border"
           />
@@ -199,7 +201,7 @@ const PetDetailsFreelancer = () => {
           </Link>
           <div className="flex items-center gap-2 mt-2">
             <img
-              src={pet.client_image_url || "/profile.png"}
+              src={pet.client_image_url || defaultImg}
               alt="Owner"
               className="w-8 h-8 rounded-full object-cover border"
             />
@@ -280,7 +282,7 @@ const PetDetailsFreelancer = () => {
               <div className="flex flex-col md:flex-row items-center gap-6 border-b pb-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src={pet.pet_image_url || "/pet-default.png"}
+                    src={pet.pet_image_url || defaultImg}
                     alt="Pet"
                     className="w-20 h-20 rounded-full border object-cover"
                   />
@@ -294,7 +296,7 @@ const PetDetailsFreelancer = () => {
 
                 <div className="flex items-center gap-3 md:ml-auto">
                   <img
-                    src={pet.client_image_url || "/profile.png"}
+                    src={pet.client_image_url || defaultImg}
                     alt="Owner"
                     className="w-16 h-16 rounded-full border object-cover"
                   />
@@ -398,7 +400,7 @@ const PetDetailsFreelancer = () => {
                           >
                             {isImage ? (
                               <img
-                                src={doc.document_url}
+                                src={doc.document_url || defaultImg}
                                 alt={doc.file_name}
                                 className="w-full h-32 object-cover"
                               />

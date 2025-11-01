@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 
 export default function ProtectedRoute({
   children,
-  allowedRoles = ["clinic_owner"], // supports array of roles
+  allowedRoles = ["clinic_owner", "veterinarian"], // supports array of roles
   guestOnly = false,
 }) {
   // Safely read from localStorage
