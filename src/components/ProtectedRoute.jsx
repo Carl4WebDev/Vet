@@ -2,21 +2,36 @@ import { Navigate } from "react-router-dom";
 
 export default function ProtectedRoute({
   children,
-  allowedRole = "clinic_owner", // default role is admin
-  guestOnly,
+  allowedRoles = ["clinic_owner"], // supports array of roles
+  guestOnly = false,
 }) {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  // Safely read from localStorage
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const role =
+    typeof window !== "undefined" ? localStorage.getItem("role") : null;
 
-  if (guestOnly && token) {
-    // 🚫 Guests only → redirect logged-in users
-    return <Navigate to="/dashboard" replace />;
+  // 🧩 Handle guest-only pages (like login/register)
+  if (guestOnly) {
+    if (token) {
+      // already logged in → redirect safely to dashboard
+      return <Navigate to="/dashboard" replace />;
+    }
+    return children;
   }
 
-  if (!guestOnly && (!token || role !== allowedRole)) {
-    // 🚫 Auth required but no token/wrong role
+  // 🔒 Auth required
+  if (!token) {
+    // no token → go back to login
     return <Navigate to="/" replace />;
   }
 
+  // 🧠 Role-based access control
+  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    // unauthorized → prevent render loop and redirect once
+    return <Navigate to="/" replace />;
+  }
+
+  // ✅ Authorized: render the protected content
   return children;
 }

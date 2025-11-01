@@ -1,45 +1,33 @@
 import { useState } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
-import signupBg from "../assets/images/signup-bg.png";
 import navLogo from "../assets/images/nav-logo.png";
-import { registerClinic } from "../api/auth/registerClinic";
 import { useNavigate } from "react-router-dom";
+import { registerVetFreelancer } from "../updated-api/registerVetFreelancer";
+import bgReg from "../assets/images/signup-bg.png";
 
-export default function SignUpPage() {
+export default function VetFreelancerSignUpPage() {
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [clinicName, setClinicName] = useState("");
+  const [name, setName] = useState("");
+  const [specialization, setSpecialization] = useState("");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [address, setAddress] = useState({
-    street: "",
-    city: "",
-    province: "",
-    postal_code: "",
-    country: "",
-    unit_number: "",
-    latitude: "",
-    longitude: "",
-  });
+  // optional fields for freelancing
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [bio, setBio] = useState("");
+
+  const [accepted, setAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false); // ✅ added modal state
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
-  // ✅ Added Terms and Conditions modal state
-  const [showTermsModal, setShowTermsModal] = useState(false);
-  const [accepted, setAccepted] = useState(false);
-
-  const handleAddressChange = (e) => {
-    const { name, value } = e.target;
-    setAddress((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,7 +36,6 @@ export default function SignUpPage() {
       setShowTermsModal(true);
       return;
     }
-
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -58,21 +45,24 @@ export default function SignUpPage() {
     setError(null);
     setSuccess(null);
 
-    const clinicData = {
+    const payload = {
+      name,
+      specialization: specialization || null,
       email,
+      contact_number: contactNumber,
       password,
-      clinic_name: clinicName,
-      phone_number: phoneNumber,
-      address,
+      employment_type: "freelancer",
+      hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+      bio: bio || null,
     };
 
     try {
-      const result = await registerClinic(clinicData);
-      setSuccess("Clinic registered successfully!");
-      console.log("✅ Registered clinic:", result);
-      navigate("/dashboard");
+      const res = await registerVetFreelancer(payload);
+      setSuccess("Veterinarian (Freelance) registered successfully!");
+      console.log("✅ Registered vet freelancer:", res);
+      navigate("/"); // go to login
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || "Failed to register vet freelancer");
     } finally {
       setLoading(false);
     }
@@ -82,54 +72,41 @@ export default function SignUpPage() {
     <div
       className="min-h-screen w-full bg-cover bg-center bg-no-repeat"
       style={{
-        backgroundImage: `url(${signupBg})`,
+        backgroundImage: `url(${bgReg})`,
       }}
     >
       {/* Header */}
       <header className="bg-gray-200 flex items-center gap-2 px-6 py-3 mb-8">
         <img src={navLogo} alt="VetConnect Logo" className="w-10 h-10" />
         <h1 className="text-2xl font-bold -translate-y-1">
-          VetConnect in pet we care
+          VetConnect — Freelancer Sign Up
         </h1>
       </header>
 
-      {/* Body */}
       <main className="flex-grow flex items-center justify-center">
-        <div className="bg-[#BBC0C3] backdrop-blur-sm p-8 rounded-md shadow-lg w-full max-w-md">
+        <div className="bg-white p-8 rounded-md shadow-lg w-full max-w-md">
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <Input
-              label="Clinic Name"
-              required
-              value={clinicName}
-              onChange={(e) => setClinicName(e.target.value)}
+            <Field label="Full Name" required value={name} onChange={setName} />
+            <Field
+              label="Specialization"
+              placeholder="e.g., Surgery, Dermatology"
+              value={specialization}
+              onChange={setSpecialization}
             />
-            <Input
+            <Field
               label="Email"
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={setEmail}
             />
-            <Input
-              label="Number"
+            <Field
+              label="Contact Number"
               type="tel"
               required
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              value={contactNumber}
+              onChange={setContactNumber}
             />
-
-            {/* Address → opens modal */}
-            <div>
-              <Label text="Address" required />
-              <div
-                onClick={() => setIsAddressModalOpen(true)}
-                className="w-full px-3 py-2 rounded-md border bg-white cursor-pointer focus:ring-2 focus:ring-blue-400"
-              >
-                {address.street && address.city
-                  ? `${address.street}, ${address.city}`
-                  : "Click to enter address"}
-              </div>
-            </div>
 
             {/* Password */}
             <div>
@@ -175,7 +152,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* ✅ Terms Checkbox */}
+            {/* Terms */}
             <div className="text-sm flex items-center gap-2 mt-4">
               <input
                 type="checkbox"
@@ -186,7 +163,7 @@ export default function SignUpPage() {
                 className="accent-blue-500"
               />
               <label htmlFor="tos" className="text-black">
-                Yes, I agree to the{" "}
+                I agree to the{" "}
                 <button
                   type="button"
                   onClick={() => setShowTermsModal(true)}
@@ -202,21 +179,13 @@ export default function SignUpPage() {
               disabled={loading}
               className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
             >
-              {loading ? "Creating..." : "Create Account"}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/signup/vet-freelancer")}
-              className="w-full bg-white text-black border border-black py-2 rounded-md hover:bg-gray-100 transition"
-            >
-              Register as Veterinarian (Freelance)
+              {loading ? "Creating..." : "Create Freelancer Account"}
             </button>
 
-            {/* ✅ Back to Login button */}
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
+              className="w-full mt-2 bg-white text-black border border-black py-2 rounded-md hover:bg-gray-100 transition"
             >
               Back to Login
             </button>
@@ -227,83 +196,16 @@ export default function SignUpPage() {
         </div>
       </main>
 
-      {/* Address Modal */}
-      {isAddressModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-lg relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
-              onClick={() => setIsAddressModalOpen(false)}
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-semibold mb-4">Enter Address</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <InputField
-                label="Street"
-                name="street"
-                value={address.street}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="City"
-                name="city"
-                value={address.city}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Province"
-                name="province"
-                value={address.province}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Postal Code"
-                name="postal_code"
-                value={address.postal_code}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Country"
-                name="country"
-                value={address.country}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Unit Number"
-                name="unit_number"
-                value={address.unit_number}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Latitude"
-                name="latitude"
-                value={address.latitude}
-                onChange={handleAddressChange}
-              />
-              <InputField
-                label="Longitude"
-                name="longitude"
-                value={address.longitude}
-                onChange={handleAddressChange}
-              />
-            </div>
-            <div className="mt-4 text-right">
-              <button
-                className="bg-black text-white px-4 py-2 rounded-md hover:opacity-90"
-                onClick={() => setIsAddressModalOpen(false)}
-              >
-                Save Address
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 📜 Terms & Conditions Modal */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
           <div className="bg-white max-w-3xl max-h-[80vh] overflow-y-auto rounded-lg shadow-xl p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              onClick={() => setShowTermsModal(false)}
+            >
+              <X size={20} />
+            </button>
             <h2 className="text-2xl font-bold mb-4 text-center">
               VetConnect Terms & Conditions
             </h2>
@@ -387,15 +289,23 @@ export default function SignUpPage() {
   );
 }
 
-// Reusable Components
-function Input({ label, required, type = "text", value, onChange }) {
+// Reusable components
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  placeholder = "",
+}) {
   return (
     <div>
       <Label text={label} required={required} />
       <input
         type={type}
         value={value}
-        onChange={onChange}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
     </div>
@@ -407,20 +317,5 @@ function Label({ text, required }) {
     <label className="text-sm block mb-1 font-medium">
       {text} {required && <span className="text-red-500">*</span>}
     </label>
-  );
-}
-
-function InputField({ label, name, value, onChange }) {
-  return (
-    <div className="col-span-1">
-      <Label text={label} />
-      <input
-        type="text"
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
-    </div>
   );
 }

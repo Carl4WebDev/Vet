@@ -128,11 +128,21 @@ export default function LoginPage() {
             >
               Sign In
             </button>
+
             <Link
               to="/sign-up"
               className="flex-1 text-center bg-black text-white py-2 rounded-md hover:opacity-90"
             >
               <button type="button">Sign Up</button>
+            </Link>
+          </div>
+          {/* 🔗 Vet Freelancer Login Button */}
+          <div className="mt-3">
+            <Link
+              to="/vet-freelancer/login"
+              className="w-full block text-center bg-white text-black border border-black py-2 rounded-md hover:bg-gray-100 transition"
+            >
+              Login as Vet Freelancer
             </Link>
           </div>
         </form>

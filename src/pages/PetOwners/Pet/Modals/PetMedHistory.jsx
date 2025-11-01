@@ -253,12 +253,6 @@ export default function PetMedHistory({ isOpen, onClose, record }) {
           >
             Download PDF
           </button>
-          <button className="bg-gray-500 text-white px-4 py-2 rounded shadow">
-            Email to Owner
-          </button>
-          <button className="bg-yellow-400 text-white px-4 py-2 rounded shadow">
-            Add Note
-          </button>
         </div>
       </div>
     </div>

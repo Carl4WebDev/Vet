@@ -28,6 +28,7 @@ import PetNewHealthRecord from "./pages/PetOwners/Pet/PetNewHealthRecord";
 import StaffPage from "./pages/Staff/StaffPage";
 import MessagePage from "./pages/MessagePage";
 import SchedulePage from "./pages/SchedulePage";
+import VetFreeLancerSignUpPage from "./pages/VetFreelancerSignUpPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -40,6 +41,15 @@ import VetClinicChatbot from "./components/VetClinicChatbot";
 import defaultImage from "./assets/images/nav-profile.png";
 
 import { useChat } from "./context/ChatContext";
+import VetFreelancerLoginPage from "./pages/VetFreelancerLoginPage";
+import FreelanceDashboard from "./freelancer/layouts/FreelanceDashboardLayout";
+import FreelanceDashboardLayout from "./freelancer/layouts/FreelanceDashboardLayout";
+import DashboardHome from "./freelancer/pages/dashboard/DashboardHome";
+import PetOwners from "./freelancer/pages/PetOwners/PetOwners";
+import PetOwnerDetails from "./freelancer/pages/PetOwners/PetOwnerDetails";
+import PetDetailsFreelancer from "./freelancer/pages/PetOwners/PetDetailsFreelancer";
+import AddHealthRecordFreelancer from "./freelancer/pages/PetOwners/AddHealthRecordFreelancer";
+import Notifications from "./freelancer/pages/Notification";
 
 function App() {
   return (
@@ -62,16 +72,42 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         {/* Authenticated users */}
         <Route
           path="/*"
           element={
-            <ProtectedRoute allowedRole="clinic_owner">
+            <ProtectedRoute allowedRoles={["clinic_owner"]}>
               <DashboardLayout />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/signup/vet-freelancer"
+          element={<VetFreeLancerSignUpPage />}
+        />
+        <Route
+          path="/vet-freelancer/login"
+          element={<VetFreelancerLoginPage />}
+        />
+        {/* ✅ Freelance vet protected routes */}
+        <Route
+          path="/vet-freelancer/home/*"
+          element={
+            <ProtectedRoute allowedRoles={["veterinarian"]}>
+              <FreelanceDashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* these render inside the layout */}
+          <Route path="dashboard" element={<DashboardHome />} />
+          <Route path="pet-owners" element={<PetOwners />} />
+          <Route path="pet-details/:petId" element={<PetDetailsFreelancer />} />
+          <Route
+            path="add-pet/:petId"
+            element={<AddHealthRecordFreelancer />}
+          />
+          <Route path="vet-notifications" element={<Notifications />} />
+        </Route>
       </Routes>
     </Router>
   );
