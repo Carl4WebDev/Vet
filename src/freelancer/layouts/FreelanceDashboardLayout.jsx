@@ -114,7 +114,7 @@ const FreelanceDashboardLayout = () => {
               Messages
             </Link>
             <Link
-              to="/vet-freelancer/settings"
+              to="/vet-freelancer/home/settings"
               className={`block font-medium hover:text-red-500 ${
                 location.pathname.includes("settings") ? "text-red-500" : ""
               }`}

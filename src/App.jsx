@@ -53,6 +53,7 @@ import Notifications from "./freelancer/pages/Notification";
 import PatientRecordsFreelancer from "./freelancer/pages/patient/PatientRecordsFreelancer";
 import VetFreelancerSchedule from "./freelancer/pages/appointments/VetFreelancerSchedule";
 import VetFreelancerChatPage from "./freelancer/pages/VetFreelancerChatPage";
+import VetSettingsPage from "./freelancer/pages/settings/VetSettingsPage";
 
 function App() {
   return (
@@ -108,6 +109,7 @@ function App() {
           <Route path="patients" element={<PatientRecordsFreelancer />} />
           <Route path="appointments" element={<VetFreelancerSchedule />} />
           <Route path="messages" element={<VetFreelancerChatPage />} />
+          <Route path="settings/*" element={<VetSettingsPage />} />
           <Route
             path="add-pet/:petId"
             element={<AddHealthRecordFreelancer />}

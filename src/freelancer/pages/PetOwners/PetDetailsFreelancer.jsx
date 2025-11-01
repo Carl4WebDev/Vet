@@ -1,155 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { getFreelancePetDetails } from "../../api/pet-owners/getFreelancePetDetails";
-import jsPDF from "jspdf";
-
 import defaultImg from "../../assets/nav-profile.png";
+import jsPDF from "jspdf";
 
 const PetDetailsFreelancer = () => {
   const { petId } = useParams();
-  const navigate = useNavigate();
   const [pet, setPet] = useState(null);
   const [records, setRecords] = useState([]);
-  const [selectedRecord, setSelectedRecord] = useState(null); // ✅ modal state
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
-  // 📅 Helper formatters
   const formatDate = (date) =>
     date ? new Date(date).toLocaleDateString("en-PH") : "N/A";
-
-  const formatTime = (time) =>
-    time ? new Date(`1970-01-01T${time}`).toLocaleTimeString("en-PH") : "N/A";
-
-  // 📄 Generate clean printable PDF
-  const handleDownloadPDF = () => {
-    const record = selectedRecord;
-    if (!record || !pet) return;
-
-    const doc = new jsPDF();
-    let y = 15;
-
-    // Header
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("Veterinary Medical Record", 14, y);
-    y += 8;
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, y);
-    y += 8;
-
-    // Pet Info
-    doc.setFont("helvetica", "bold");
-    doc.text("Pet Information", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${pet.pet_name}`, 14, y);
-    y += 5;
-    doc.text(`Age: ${pet.pet_age || "N/A"} year(s)`, 14, y);
-    y += 5;
-    doc.text(`Species: ${pet.pet_species || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Breed: ${pet.pet_breed || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Gender: ${pet.pet_gender || "N/A"}`, 14, y);
-    y += 8;
-
-    // Visit Info
-    doc.setFont("helvetica", "bold");
-    doc.text("Visit Information", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Visit Date: ${formatDate(record.visit_date)}`, 14, y);
-    y += 5;
-    doc.text(`Visit Time: ${formatTime(record.visit_time)}`, 14, y);
-    y += 5;
-    doc.text(`Duration: ${record.duration || "N/A"} minutes`, 14, y);
-    y += 5;
-    doc.text(`Visit Type: ${record.visit_type || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Veterinarian: ${record.veterinarian_name || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Chief Complaint: ${record.chief_complaint || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Visit Reason: ${record.visit_reason || "N/A"}`, 14, y);
-    y += 8;
-
-    // Tests
-    doc.setFont("helvetica", "bold");
-    doc.text("Tests and Procedures", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Fecal Examination: ${record.fecal_examination || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(
-      `Physical Examination: ${record.physical_examination || "N/A"}`,
-      14,
-      y
-    );
-    y += 8;
-
-    // Diagnosis
-    doc.setFont("helvetica", "bold");
-    doc.text("Diagnosis and Assessment", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Primary Diagnosis: ${record.primary_diagnosis || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Body Condition: ${record.body_condition || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Overall Health: ${record.overall_health || "N/A"}`, 14, y);
-    y += 8;
-
-    // Treatment
-    doc.setFont("helvetica", "bold");
-    doc.text("Treatment and Medication", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Medication Given: ${record.medication_given || "None"}`, 14, y);
-    y += 5;
-    doc.text(`Prescriptions: ${record.prescriptions || "None"}`, 14, y);
-    y += 5;
-    doc.text(`Treatment: ${record.treatment || "None"}`, 14, y);
-    y += 8;
-
-    // Vital Signs
-    doc.setFont("helvetica", "bold");
-    doc.text("Vital Signs", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Weight: ${record.vital_weight || "N/A"} kg`, 14, y);
-    y += 5;
-    doc.text(`Temperature: ${record.vital_temperature || "N/A"} °C`, 14, y);
-    y += 5;
-    doc.text(`Heart Rate: ${record.vital_heart_rate || "N/A"}`, 14, y);
-    y += 5;
-    doc.text(`Resp. Rate: ${record.vital_resp_rate || "N/A"}`, 14, y);
-    y += 8;
-
-    // Notes
-    doc.setFont("helvetica", "bold");
-    doc.text("Notes & Actions", 14, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    const splitRemarks = doc.splitTextToSize(
-      `Remarks: ${record.notes || "None"}`,
-      180
-    );
-    doc.text(`Action: ${record.key_action || "None"}`, 14, y);
-    y += 5;
-    doc.text(splitRemarks, 14, y);
-    y += splitRemarks.length * 5 + 5;
-
-    // Footer
-    doc.line(14, y, 196, y);
-    y += 6;
-    doc.setFontSize(10);
-    doc.text("This report is system-generated by VetConnect.", 14, y);
-
-    // Save
-    const filename = `Medical_Record_${pet.pet_name}_${record.record_id}.pdf`;
-    doc.save(filename);
-  };
 
   useEffect(() => {
     (async () => {
@@ -159,10 +21,46 @@ const PetDetailsFreelancer = () => {
     })();
   }, [petId]);
 
-  if (!pet) return <p>Loading...</p>;
+  const handleDownloadPDF = () => {
+    if (!selectedRecord || !pet) return;
+    const doc = new jsPDF();
+    let y = 15;
+
+    doc.setFontSize(16);
+    doc.text("Veterinary Medical Record", 14, y);
+    y += 8;
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, y);
+    y += 10;
+
+    doc.text(`Pet Name: ${pet.pet_name}`, 14, y);
+    y += 5;
+    doc.text(`Species: ${pet.pet_species}`, 14, y);
+    y += 5;
+    doc.text(`Breed: ${pet.pet_breed}`, 14, y);
+    y += 5;
+    doc.text(`Gender: ${pet.pet_gender}`, 14, y);
+    y += 5;
+    doc.text(`Veterinarian: ${selectedRecord.veterinarian_name}`, 14, y);
+    y += 5;
+    doc.text(`Diagnosis: ${selectedRecord.primary_diagnosis || "N/A"}`, 14, y);
+    y += 10;
+    doc.text(`Notes: ${selectedRecord.notes || "N/A"}`, 14, y);
+    y += 5;
+    doc.text(`Treatment: ${selectedRecord.treatment || "N/A"}`, 14, y);
+
+    doc.save(`Medical_Record_${pet.pet_name}_${selectedRecord.record_id}.pdf`);
+  };
+
+  if (!pet)
+    return (
+      <div className="p-8 text-center text-gray-600">
+        Loading pet details...
+      </div>
+    );
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 font-sans">
       <Link
         to="/vet-freelancer/home/pet-owners"
         className="text-blue-500 text-sm hover:underline"
@@ -170,176 +68,176 @@ const PetDetailsFreelancer = () => {
         ← Back to Owners
       </Link>
 
-      {/* 🐶 Pet Info Header */}
-      <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row justify-between">
-        <div className="flex items-center gap-4">
+      {/* 🐶 Top Info Card */}
+      <div className="border rounded-xl p-6 flex flex-col md:flex-row items-start gap-6 shadow-sm bg-white">
+        <div className="flex flex-col gap-4">
           <img
             src={pet.pet_image_url || defaultImg}
-            alt="Pet"
+            alt={pet.pet_name}
             className="w-24 h-24 rounded-full object-cover border"
           />
-          <div>
-            <h2 className="font-semibold text-lg">{pet.pet_name}</h2>
-            <p className="text-sm text-gray-600">Species: {pet.pet_species}</p>
-            <p className="text-sm text-gray-600">
-              Breed: {pet.pet_breed || "N/A"} | Gender: {pet.pet_gender}
-            </p>
-            <p className="text-sm text-gray-600">
-              Age: {pet.pet_age || "N/A"} | Weight: {pet.pet_weight || "N/A"} kg
-            </p>
-            <p className="text-sm text-gray-600">
-              Veterinarian: {pet.veterinarian_name || "N/A"}
-            </p>
-          </div>
-        </div>
 
-        <div className="mt-4 md:mt-0 flex flex-col justify-center items-start md:items-end">
-          <Link to={`/vet-freelancer/home/add-pet/${petId}`}>
-            <button className="bg-red-500 text-white text-sm px-3 py-2 rounded hover:bg-red-600">
-              + New Health Record
-            </button>
+          {/* ⚠️ Contagious Disease Badge */}
+          {records.length > 0 && records[0].is_contagious && (
+            <div className="bg-red-100 text-red-700 px-3 py-2 rounded-md text-sm font-semibold shadow-sm">
+              ⚠️ Contagious Disease:{" "}
+              {records[0].contagious_disease || "Unspecified"}
+            </div>
+          )}
+
+          <Link
+            to={`/vet-freelancer/home/add-pet/${petId}`}
+            className="p-2 border-black border rounded-lg font-bold text-center hover:bg-gray-100"
+          >
+            + New Health Record
           </Link>
-          <div className="flex items-center gap-2 mt-2">
-            <img
-              src={pet.client_image_url || defaultImg}
-              alt="Owner"
-              className="w-8 h-8 rounded-full object-cover border"
-            />
-            <p className="text-sm text-gray-700">
-              {pet.client_name} ({pet.client_phone})
+        </div>
+
+        {/* Pet Info */}
+        <div className="flex-1 grid md:grid-cols-3 gap-4">
+          <div>
+            <h2 className="font-bold text-lg mb-2">Pet Information</h2>
+            <p>
+              <b>Name:</b> {pet.pet_name || "N/A"}
+            </p>
+            <p>
+              <b>Age:</b> {pet.pet_age ? `${pet.pet_age} Years Old` : "N/A"}
+            </p>
+            <p>
+              <b>Species:</b> {pet.pet_species || "N/A"}
+            </p>
+            <p>
+              <b>Breed:</b> {pet.pet_breed || "N/A"}
+            </p>
+            <p>
+              <b>Birthdate:</b> {formatDate(pet.pet_birthday)}
+            </p>
+            <p>
+              <b>Gender:</b> {pet.pet_gender || "N/A"}
+            </p>
+            <p>
+              <b>Weight:</b> {pet.pet_weight ? `${pet.pet_weight} kg` : "N/A"}
+            </p>
+            <p>
+              <b>Veterinarian:</b> {pet.veterinarian_name || "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <h2 className="font-bold text-lg mb-2">Medical Information</h2>
+            <p>
+              <b>Allergies:</b> None
+            </p>
+            <p>
+              <b>Medication:</b> None
+            </p>
+            <p>
+              <b>Name:</b> {pet.pet_name || "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <h2 className="font-bold text-lg mb-2">Current Medication</h2>
+            <p>
+              {records.length > 0
+                ? records[0].medication_given || "None"
+                : "None"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* 🧾 Medical History */}
-      <div>
-        <h3 className="bg-black text-white px-4 py-2 rounded-t-md font-semibold">
-          Medical
-        </h3>
-
-        {records.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-            {records.map((rec) => (
-              <div
-                key={rec.record_id}
-                onClick={() => setSelectedRecord(rec)} // ✅ open modal
-                className="bg-white shadow rounded-lg p-4 text-sm cursor-pointer hover:shadow-lg transition"
-              >
-                <h4 className="font-semibold mb-2">{rec.label}</h4>
-                <p>
-                  <strong>Date:</strong>{" "}
-                  {rec.visit_date
-                    ? new Date(rec.visit_date).toLocaleDateString("en-PH")
-                    : "N/A"}
-                </p>
-                <p>
-                  <strong>Veterinarian:</strong>{" "}
-                  {rec.veterinarian_name || "N/A"}
-                </p>
-                <p>
-                  <strong>Diagnosis:</strong> {rec.primary_diagnosis || "N/A"}
-                </p>
-                <p>
-                  <strong>Treatment:</strong> {rec.treatment || "N/A"}
-                </p>
-                <p>
-                  <strong>Medication:</strong> {rec.medication_given || "N/A"}
-                </p>
-                <p>
-                  <strong>Remarks:</strong> {rec.notes || "N/A"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="italic text-gray-500 mt-3">
-            No medical history available for this pet.
-          </p>
-        )}
+      {/* Section Header */}
+      <div className="bg-gray-800 text-white font-bold px-4 py-2 rounded">
+        Medical
       </div>
 
-      {/* 🧩 Modal for detailed view */}
+      {/* Medical History Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {records.map((rec, index) => (
+          <div
+            key={rec.record_id}
+            onClick={() => setSelectedRecord(rec)}
+            className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition"
+          >
+            <h3 className="font-bold text-lg mb-2">
+              Medical History {index + 1}
+            </h3>
+
+            {/* ⚠️ Contagious Disease Flag */}
+            {rec.is_contagious && (
+              <div className="bg-red-100 text-red-700 px-2 py-1 rounded-md text-xs font-semibold mb-3 inline-block">
+                ⚠️ {rec.contagious_disease || "Contagious Disease"}
+              </div>
+            )}
+
+            <p>
+              <b>Date:</b> {formatDate(rec.visit_date)}
+            </p>
+            <p>
+              <b>Veterinarian:</b> {rec.veterinarian_name}
+            </p>
+            <p>
+              <b>Diagnosis:</b> {rec.primary_diagnosis || "N/A"}
+            </p>
+            <p>
+              <b>Medication:</b> {rec.medication_given || "N/A"}
+            </p>
+            <p>
+              <b>Treatment:</b> {rec.treatment || "N/A"}
+            </p>
+            <p>
+              <b>Notes:</b> {rec.notes || "N/A"}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Full Detail Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-full max-w-5xl shadow-lg relative overflow-y-auto max-h-[90vh]">
-            {/* Header */}
             <div className="bg-blue-700 text-white p-3 flex justify-between items-center rounded-t-lg">
               <h2 className="font-semibold">
                 Medical History #{selectedRecord.record_id}
               </h2>
               <button
-                className="text-white hover:text-gray-200"
                 onClick={() => setSelectedRecord(null)}
+                className="text-white hover:text-gray-200"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-4 space-y-4">
-              {/* Pet + Owner Display */}
-              <div className="flex flex-col md:flex-row items-center gap-6 border-b pb-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={pet.pet_image_url || defaultImg}
-                    alt="Pet"
-                    className="w-20 h-20 rounded-full border object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-lg">{pet.pet_name}</h3>
-                    <p className="text-sm text-gray-600">
-                      {pet.pet_species} | {pet.pet_breed}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 md:ml-auto">
-                  <img
-                    src={pet.client_image_url || defaultImg}
-                    alt="Owner"
-                    className="w-16 h-16 rounded-full border object-cover"
-                  />
-                  <div>
-                    <h4 className="font-semibold">{pet.client_name}</h4>
-                    <p className="text-sm text-gray-600">{pet.client_phone}</p>
-                  </div>
-                </div>
-              </div>
-
+            <div className="p-4 space-y-4 text-sm">
               {/* Visit Details */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div>
-                  <p className="font-semibold text-gray-700">Visit Date</p>
-                  <p>{selectedRecord.visit_date || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-700">Time</p>
-                  <p>{selectedRecord.visit_time || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-700">Duration</p>
-                  <p>{selectedRecord.duration || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-700">Visit Type</p>
-                  <p>{selectedRecord.visit_type || "N/A"}</p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <p>
+                  <b>Visit Date:</b> {formatDate(selectedRecord.visit_date)}
+                </p>
+                <p>
+                  <b>Time:</b> {selectedRecord.visit_time || "N/A"}
+                </p>
+                <p>
+                  <b>Duration:</b> {selectedRecord.duration || "N/A"}
+                </p>
+                <p>
+                  <b>Type:</b> {selectedRecord.visit_type || "N/A"}
+                </p>
               </div>
 
-              {/* Grouped Sections */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <div className="border rounded p-3">
                   <h4 className="font-semibold mb-2">Visit Information</h4>
                   <p>Veterinarian: {selectedRecord.veterinarian_name}</p>
                   <p>
                     Chief Complaint: {selectedRecord.chief_complaint || "N/A"}
                   </p>
-                  <p>Visit Reason: {selectedRecord.visit_reason || "N/A"}</p>
+                  <p>Reason: {selectedRecord.visit_reason || "N/A"}</p>
                 </div>
 
                 <div className="border rounded p-3">
-                  <h4 className="font-semibold mb-2">Test and Procedures</h4>
+                  <h4 className="font-semibold mb-2">Tests & Procedures</h4>
                   <p>Fecal Exam: {selectedRecord.fecal_examination || "N/A"}</p>
                   <p>
                     Physical Exam:{" "}
@@ -348,9 +246,7 @@ const PetDetailsFreelancer = () => {
                 </div>
 
                 <div className="border rounded p-3">
-                  <h4 className="font-semibold mb-2">
-                    Diagnosis and Assessment
-                  </h4>
+                  <h4 className="font-semibold mb-2">Diagnosis</h4>
                   <p>Diagnosis: {selectedRecord.primary_diagnosis || "N/A"}</p>
                   <p>
                     Body Condition: {selectedRecord.body_condition || "N/A"}
@@ -361,9 +257,7 @@ const PetDetailsFreelancer = () => {
                 </div>
 
                 <div className="border rounded p-3">
-                  <h4 className="font-semibold mb-2">
-                    Treatment and Medication
-                  </h4>
+                  <h4 className="font-semibold mb-2">Treatment & Medication</h4>
                   <p>Medication: {selectedRecord.medication_given || "N/A"}</p>
                   <p>Prescriptions: {selectedRecord.prescriptions || "N/A"}</p>
                   <p>Treatment: {selectedRecord.treatment || "N/A"}</p>
@@ -372,7 +266,7 @@ const PetDetailsFreelancer = () => {
                 <div className="border rounded p-3">
                   <h4 className="font-semibold mb-2">Notes & Action</h4>
                   <p>Action: {selectedRecord.key_action || "N/A"}</p>
-                  <p>Remarks: {selectedRecord.notes || "N/A"}</p>
+                  <p>Notes: {selectedRecord.notes || "N/A"}</p>
                 </div>
 
                 <div className="border rounded p-3">
@@ -382,10 +276,11 @@ const PetDetailsFreelancer = () => {
                     Temperature: {selectedRecord.vital_temperature || "N/A"}°C
                   </p>
                   <p>Heart Rate: {selectedRecord.vital_heart_rate || "N/A"}</p>
-                  <p>Resp. Rate: {selectedRecord.vital_resp_rate || "N/A"}</p>
+                  <p>Resp Rate: {selectedRecord.vital_resp_rate || "N/A"}</p>
                 </div>
               </div>
-              {/* 🧾 Attached Documents Section */}
+
+              {/* Attached Documents */}
               {selectedRecord.documents &&
                 selectedRecord.documents.length > 0 && (
                   <div className="border rounded p-3">
@@ -429,8 +324,7 @@ const PetDetailsFreelancer = () => {
                   </div>
                 )}
 
-              {/* Footer Buttons */}
-              <div className="flex justify-end gap-3 pt-3">
+              <div className="text-right">
                 <button
                   onClick={handleDownloadPDF}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
