@@ -4,7 +4,7 @@ import { Bell, Menu, X } from "lucide-react";
 import vetConnect from "../assets/nav-logo.png";
 import { getFreelanceVetProfile } from "../api/dashboard/getVetFreelanceProfile";
 import { useNavigate } from "react-router-dom";
-
+const vetName = localStorage.getItem("vet_name");
 const FreelanceDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [vetData, setVetData] = useState(null);
@@ -36,7 +36,6 @@ const FreelanceDashboardLayout = () => {
     })();
   }, [userId]);
 
-  const vetName = vetData?.vet_name || "Dr. Freelance Vet";
   const vetImage = vetData?.image_url || "/profile.png";
 
   return (
