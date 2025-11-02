@@ -11,6 +11,7 @@ const DashboardHome = () => {
   const [schedule, setSchedule] = useState([]);
   const COLORS = ["#ff5c8d", "#4db6e6"];
   const vetId = localStorage.getItem("vet_id");
+  const vetName = localStorage.getItem("vet_name");
 
   useEffect(() => {
     if (!vetId) return;
@@ -51,7 +52,7 @@ const DashboardHome = () => {
                   <td className="p-3 text-sm">{item.client_name}</td>
                   <td className="p-3 text-sm">{item.pet_name}</td>
                   <td className="p-3 text-sm">{item.appointment_type}</td>
-                  <td className="p-3 text-sm">You</td>
+                  <td className="p-3 text-sm">{vetName}</td>
                   <td className="p-3 text-sm">{item.status}</td>
                 </tr>
               ))

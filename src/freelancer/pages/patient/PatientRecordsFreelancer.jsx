@@ -165,7 +165,7 @@ export default function PatientRecordsFreelancer() {
                       {r.pet_name}
                     </Link>
                   </td>
-                  <td className="p-2">{r.veterinarian_name}</td>
+                  <td className="p-2">{r.veterinarian_name} </td>
                   <td className="p-2">
                     {new Date(r.date).toLocaleDateString("en-PH")}
                   </td>
