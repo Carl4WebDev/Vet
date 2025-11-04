@@ -210,7 +210,10 @@ function PatientRecords() {
                   <td className="p-2 md:p-4">{record.appointment_id}</td>
                   <td className="p-2 md:p-4">{record.customer_name}</td>
                   <td className="text-blue-600 p-2 md:p-4">
-                    <Link to={`/pet-details/${record.pet_id}`}>
+                    <Link
+                      to={`/pet-health-record/${record.pet_id}`}
+                      state={{ record: record }}
+                    >
                       {record.pet_name}
                     </Link>
                   </td>

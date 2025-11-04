@@ -10,7 +10,7 @@ const PetDetailsPage = () => {
   const [selectedRecord, setSelectedRecord] = useState(null); // 🟡 Added
   const [petInfo, setPetInfo] = useState(null);
   const [medicalHistory, setMedicalHistory] = useState([]);
-
+  console.log(selectedRecord);
   useEffect(() => {
     const fetchData = async () => {
       try {

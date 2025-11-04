@@ -244,6 +244,56 @@ export default function PetMedHistory({ isOpen, onClose, record }) {
             </p>
           </Section>
         </div>
+        {/* 📎 Attachments Section */}
+        {record.documents && record.documents.length > 0 && (
+          <div className="bg-white rounded-xl p-4 shadow mx-4 mb-6">
+            <h2 className="text-md font-semibold mb-3 text-gray-700">
+              Attached Documents
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {record.documents.map((doc, index) => {
+                const isImage = doc.mime_type.startsWith("image/");
+                return (
+                  <div
+                    key={doc.document_id || index}
+                    className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition bg-gray-50"
+                  >
+                    {isImage ? (
+                      // 🖼️ Image Preview
+                      <img
+                        src={doc.document_url || ""}
+                        alt={doc.file_name || ""}
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      // 📄 Non-image file (PDF, DOCX, etc.)
+                      <div className="flex flex-col items-center justify-center h-48 text-gray-600 bg-gray-200">
+                        <span className="text-4xl">📄</span>
+                        <p className="text-xs mt-1">{doc.mime_type || ""}</p>
+                      </div>
+                    )}
+
+                    {/* Footer: filename + open link */}
+                    <div className="p-2 border-t text-center bg-white">
+                      <p className="text-sm truncate text-gray-800">
+                        {doc.file_name || ""}
+                      </p>
+                      <a
+                        href={doc.document_url || ""}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-1 text-blue-600 hover:underline text-sm"
+                      >
+                        Open File
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 p-4">

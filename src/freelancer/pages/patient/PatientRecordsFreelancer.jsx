@@ -193,7 +193,10 @@ export default function PatientRecordsFreelancer() {
                   <td className="p-2">{r.appointment_id}</td>
                   <td className="p-2">{r.customer_name}</td>
                   <td className="p-2 text-blue-600">
-                    <Link to={`/vet-freelancer/home/pet-details/${r.pet_id}`}>
+                    <Link
+                      to={`/vet-freelancer/home/add-pet/${r.pet_id}`}
+                      state={{ record: r }} // 👈 passes the full record object
+                    >
                       {r.pet_name}
                     </Link>
                   </td>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { createPetMedicalRecord } from "../../../api/post/createPetMedicalRecord";
 import { getVetByClinic } from "../../../api/get/getVetByClinic";
 
@@ -13,11 +13,59 @@ export default function AddHealthRecord() {
   const [errorMessage, setErrorMessage] = useState("");
   const [files, setFiles] = useState([]);
 
+  const location = useLocation();
+  const record = location.state?.record || null;
+  useEffect(() => {
+    if (record && vets.length > 0) {
+      const duration =
+        record.start_time && record.end_time
+          ? (() => {
+              const [sh, sm] = record.start_time.split(":").map(Number);
+              const [eh, em] = record.end_time.split(":").map(Number);
+              return eh * 60 + em - (sh * 60 + sm);
+            })()
+          : "";
+
+      // ✅ Convert UTC date to local date (no minus day)
+      const localDate = record.date
+        ? new Date(record.date).toLocaleDateString("en-CA")
+        : "";
+
+      // ✅ Match vet by name (case-insensitive)
+      const matchedVet = vets.find(
+        (v) =>
+          v.vet_name.trim().toLowerCase() ===
+          record.veterinarian_name.trim().toLowerCase()
+      );
+
+      setForm((prev) => ({
+        ...prev,
+        visit_date: localDate,
+        visit_time: record.start_time || "",
+        duration: duration,
+        visit_type: record.reason || "Walk-in",
+        is_contagious:
+          record.is_contagious === true
+            ? "Yes"
+            : record.is_contagious === false
+            ? "No"
+            : "",
+        contagious_disease: record.contagious_disease || "",
+        vet_id: matchedVet ? matchedVet.vet_id : "", // ✅ safe name-based prefill
+      }));
+
+      console.log(
+        "Prefilled vet:",
+        matchedVet ? matchedVet.vet_name : "No matching vet found"
+      );
+    }
+  }, [record, vets]);
+
   const [form, setForm] = useState({
     visit_date: "",
     visit_time: "",
     duration: "",
-    visit_type: "",
+    visit_type: "Walkin",
     chief_complaint: "",
     visit_reason: "",
     vet_id: "",

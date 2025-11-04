@@ -1,11 +1,46 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { createFreelanceMedicalRecord } from "../../api/pet-owners/createFreelanceMedicalRecord";
 
 export default function AddHealthRecordFreelancer() {
   const navigate = useNavigate();
   const { petId } = useParams();
-  const vetId = 8;
+  const vetId = localStorage.getItem("vet_id");
+  const vetName = localStorage.getItem("vet_name");
+  const location = useLocation();
+  const record = location.state?.record || null;
+
+  useEffect(() => {
+    if (record) {
+      const duration =
+        record.start_time && record.end_time
+          ? (() => {
+              const [sh, sm] = record.start_time.split(":").map(Number);
+              const [eh, em] = record.end_time.split(":").map(Number);
+              return eh * 60 + em - (sh * 60 + sm);
+            })()
+          : "";
+
+      const localDate = record.date
+        ? new Date(record.date).toLocaleDateString("en-CA") // ✅ outputs YYYY-MM-DD correctly in local time
+        : "";
+
+      setForm((prev) => ({
+        ...prev,
+        visit_date: localDate,
+        visit_time: record.start_time || "",
+        visit_type: record.reason,
+        duration: duration,
+        is_contagious:
+          record.is_contagious === true
+            ? "Yes"
+            : record.is_contagious === false
+            ? "No"
+            : "",
+        contagious_disease: record.contagious_disease || "",
+      }));
+    }
+  }, [record]);
 
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -15,7 +50,7 @@ export default function AddHealthRecordFreelancer() {
     visit_date: "",
     visit_time: "",
     duration: "",
-    visit_type: "",
+    visit_type: "Walkin",
     chief_complaint: "",
     visit_reason: "",
     weight: "",
@@ -144,7 +179,7 @@ export default function AddHealthRecordFreelancer() {
               </label>
               <input
                 type="text"
-                value={`Freelancer Vet ID: ${vetId}`}
+                value={vetName}
                 disabled
                 className="w-full border rounded p-2 bg-gray-100"
               />
