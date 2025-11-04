@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Link } from "react-router-dom";
-
-// ✅ Separate API call
 import { getPatientsFreelanceVet } from "../../api/patient/getPatientsFreelanceVet";
 
 export default function PatientRecordsFreelancer() {
@@ -12,6 +10,7 @@ export default function PatientRecordsFreelancer() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showContagiousOnly, setShowContagiousOnly] = useState(false);
 
   useEffect(() => {
     if (!vetId) return;
@@ -30,17 +29,22 @@ export default function PatientRecordsFreelancer() {
 
   const parseDate = (dateStr) => (dateStr ? new Date(dateStr) : null);
 
+  // ✅ Filtering logic (date + contagious toggle)
   const filteredRecords = records.filter((record) => {
     const recordDate = parseDate(record.date);
     const start = startDate ? parseDate(startDate) : null;
     const end = endDate ? parseDate(endDate) : null;
+
     if (!recordDate) return false;
-    if (start && end) return recordDate >= start && recordDate <= end;
-    if (start) return recordDate >= start;
-    if (end) return recordDate <= end;
+    if (start && end && (recordDate < start || recordDate > end)) return false;
+    if (start && recordDate < start) return false;
+    if (end && recordDate > end) return false;
+
+    if (showContagiousOnly && !record.is_contagious) return false;
     return true;
   });
 
+  // ✅ PDF Export (now includes contagious info)
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF({
@@ -49,7 +53,13 @@ export default function PatientRecordsFreelancer() {
         format: "A4",
       });
       doc.setFontSize(16);
-      doc.text("Freelance Veterinarian Patient Records", 40, 40);
+      doc.text(
+        showContagiousOnly
+          ? "Freelance Vet - Contagious Disease Records"
+          : "Freelance Veterinarian Patient Records",
+        40,
+        40
+      );
 
       const tableColumn = [
         "Record ID",
@@ -67,7 +77,11 @@ export default function PatientRecordsFreelancer() {
         r.veterinarian_name,
         new Date(r.date).toLocaleDateString("en-PH"),
         r.breed || "N/A",
-        r.reason || "N/A",
+        `${r.reason || "N/A"}${
+          r.is_contagious && r.contagious_disease
+            ? ` ⚠️ (${r.contagious_disease})`
+            : ""
+        }`,
       ]);
 
       autoTable(doc, {
@@ -79,7 +93,11 @@ export default function PatientRecordsFreelancer() {
         alternateRowStyles: { fillColor: [245, 245, 245] },
       });
 
-      doc.save("freelance_vet_patient_records.pdf");
+      doc.save(
+        showContagiousOnly
+          ? "contagious_patient_records.pdf"
+          : "freelance_vet_patient_records.pdf"
+      );
     } catch (error) {
       console.error("❌ Failed to generate PDF:", error);
       alert("An error occurred while generating PDF.");
@@ -93,7 +111,7 @@ export default function PatientRecordsFreelancer() {
       </h1>
       <hr className="mb-4" />
 
-      {/* Filters + Export Button */}
+      {/* Filters + Buttons */}
       <div className="flex justify-center sm:justify-between items-center flex-wrap">
         <h2 className="text-3xl font-bold mb-6">Patient Records</h2>
 
@@ -116,6 +134,20 @@ export default function PatientRecordsFreelancer() {
               className="border border-gray-300 rounded px-3 py-2"
             />
           </div>
+
+          <button
+            onClick={() => setShowContagiousOnly((prev) => !prev)}
+            className={`${
+              showContagiousOnly
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-yellow-500 hover:bg-yellow-600"
+            } text-white font-semibold px-4 py-2 rounded`}
+          >
+            {showContagiousOnly
+              ? "Show All Patients"
+              : "🦠 Show Contagious Only"}
+          </button>
+
           <button
             onClick={handleExportPDF}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded"
@@ -165,12 +197,21 @@ export default function PatientRecordsFreelancer() {
                       {r.pet_name}
                     </Link>
                   </td>
-                  <td className="p-2">{r.veterinarian_name} </td>
+                  <td className="p-2">{r.veterinarian_name}</td>
                   <td className="p-2">
                     {new Date(r.date).toLocaleDateString("en-PH")}
                   </td>
                   <td className="p-2">{r.breed || "N/A"}</td>
-                  <td className="p-2">{r.reason || "N/A"}</td>
+
+                  {/* ✅ Add contagious tag beside reason */}
+                  <td className="p-2">
+                    {r.reason || "N/A"}
+                    {r.is_contagious && r.contagious_disease ? (
+                      <span className="ml-2 text-red-600 font-semibold">
+                        ⚠️ {r.contagious_disease}
+                      </span>
+                    ) : null}
+                  </td>
                 </tr>
               ))
             )}

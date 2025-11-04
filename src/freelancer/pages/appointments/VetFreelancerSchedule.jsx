@@ -6,7 +6,6 @@ import {
   rejectAppointment,
   completeAppointment,
 } from "../../api/appointments/getAppointmentsByVetFreelancer";
-
 import { Link } from "react-router-dom";
 
 export default function VetFreelancerSchedule() {
@@ -20,11 +19,11 @@ export default function VetFreelancerSchedule() {
   const [activeRow, setActiveRow] = useState(null);
   const [viewingPending, setViewingPending] = useState(false);
 
-  // Calendar state
+  // Calendar
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
-
   const vetId = localStorage.getItem("vet_id");
+
   const monthNames = [
     "January",
     "February",
@@ -39,40 +38,55 @@ export default function VetFreelancerSchedule() {
     "November",
     "December",
   ];
-
-  // Fetch Appointments
+  // 🩺 Fetch appointments (corrected + highlights working)
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!vetId) return;
+
       try {
         const query =
           selectedDate || searchTerm || `${yearFilter}-${monthFilter}`;
         const data = await getAppointmentsByVetFreelancer(vetId, query);
-        setAppointments(data);
-        setFilteredAppointments(data);
 
-        // Highlight calendar dates
-        const dates = new Set(
-          data
-            .map((a) => {
-              if (!a.date) return null;
-              const d = new Date(a.date);
-              return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-                2,
-                "0"
-              )}-${String(d.getDate()).padStart(2, "0")}`;
-            })
-            .filter(Boolean)
+        const now = new Date();
+
+        // ✅ Normalize ISO + filter out past appointments
+        const upcoming = data.filter((appt) => {
+          if (!appt.date || !appt.end_time) return false;
+
+          // Parse the ISO date string safely (keeps timezone)
+          const apptDate = new Date(appt.date);
+          const [h, m] = appt.end_time.split(":").map(Number);
+          apptDate.setHours(h, m, 0, 0);
+
+          // Keep only today or future
+          return apptDate >= now;
+        });
+
+        setAppointments(upcoming);
+        setFilteredAppointments(upcoming);
+
+        // ✅ Build highlighted date strings from *upcoming* appointments
+        const highlightDates = new Set(
+          upcoming.map((a) => {
+            const apptDate = new Date(a.date);
+            const year = apptDate.getFullYear();
+            const month = String(apptDate.getMonth() + 1).padStart(2, "0");
+            const day = String(apptDate.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          })
         );
-        setHighlightedDates(dates);
+
+        setHighlightedDates(highlightDates);
       } catch (err) {
         console.error("❌ Error fetching appointments:", err);
       }
     };
+
     fetchAppointments();
   }, [vetId, selectedDate, searchTerm, monthFilter, yearFilter]);
 
-  // Pending view
+  // 🔶 Pending view toggle
   const handlePending = () => {
     setFilteredAppointments(appointments.filter((a) => a.status === "Pending"));
     setViewingPending(true);
@@ -82,6 +96,7 @@ export default function VetFreelancerSchedule() {
     setViewingPending(false);
   };
 
+  // 🕒 Format time
   const formatTimeRange = (start, end) => {
     const fmt = (t) => {
       const [h, m] = t.split(":");
@@ -93,6 +108,7 @@ export default function VetFreelancerSchedule() {
     return `${fmt(start)} - ${fmt(end)}`;
   };
 
+  // 🎨 Row color
   const getRowColor = (status) => {
     switch (status) {
       case "Complete":
@@ -109,9 +125,10 @@ export default function VetFreelancerSchedule() {
     }
   };
 
-  // Calendar logic
+  // 📅 Calendar logic
   const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
   const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+  const today = new Date();
 
   const handlePrevMonth = () => {
     if (calendarMonth === 0) {
@@ -138,7 +155,7 @@ export default function VetFreelancerSchedule() {
     <div className="min-h-screen bg-white p-4">
       <h1 className="text-xl font-semibold mb-4">My Schedule</h1>
 
-      {/* Search */}
+      {/* 🔍 Search */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <div className="w-full sm:w-96 bg-gray-200 rounded-full px-4 py-2 flex items-center">
           <input
@@ -152,7 +169,7 @@ export default function VetFreelancerSchedule() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4">
-        {/* Calendar */}
+        {/* 📅 Calendar */}
         <div className="flex flex-col gap-4 w-full lg:w-1/3">
           <div className="bg-white rounded-md shadow p-4">
             <div className="flex justify-between items-center mb-2">
@@ -173,6 +190,7 @@ export default function VetFreelancerSchedule() {
               </button>
             </div>
 
+            {/* Calendar grid */}
             <div className="grid grid-cols-7 text-center gap-1 text-xs">
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d) => (
                 <div key={d} className="font-medium">
@@ -191,12 +209,20 @@ export default function VetFreelancerSchedule() {
                 ).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
                 const selected = selectedDate === formatted;
                 const hasAppointment = highlightedDates.has(formatted);
+
+                // 🩶 Gray out past days
+                const dayDate = new Date(calendarYear, calendarMonth, dayNum);
+                const isPast =
+                  dayDate.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+
                 return (
                   <div
                     key={dayNum}
-                    onClick={() => handleDayClick(dayNum)}
-                    className={`py-1 rounded cursor-pointer border ${
-                      selected
+                    onClick={() => !isPast && handleDayClick(dayNum)}
+                    className={`py-1 rounded border cursor-pointer ${
+                      isPast
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : selected
                         ? "bg-blue-500 text-white font-bold"
                         : hasAppointment
                         ? "bg-blue-200 text-blue-800 font-semibold"
@@ -209,12 +235,13 @@ export default function VetFreelancerSchedule() {
               })}
             </div>
           </div>
-          {/* 🩺 Veterinarian Name */}
+
+          {/* 🧑‍⚕️ Vet name */}
           <div className="w-full bg-gray-200 rounded py-2 text-center font-medium">
             Vet. {appointments[0]?.veterinarian_name || "Myself"}
           </div>
 
-          {/* Pending Button */}
+          {/* 🟡 Pending button */}
           <button
             onClick={handlePending}
             className={`w-full rounded py-2 font-medium ${
@@ -233,7 +260,7 @@ export default function VetFreelancerSchedule() {
           )}
         </div>
 
-        {/* Table */}
+        {/* 🧾 Table */}
         <div className="w-full lg:w-2/3 overflow-x-auto">
           <div className="bg-white rounded-md shadow overflow-x-auto">
             <table className="w-full table-auto text-sm">
@@ -258,13 +285,13 @@ export default function VetFreelancerSchedule() {
                         {formatTimeRange(row.start_time, row.end_time)}
                       </td>
                       <td className="p-2">{row.customer_name}</td>
-                      <Link
-                        to={`/vet-freelancer/home/pet-details/${row.pet_id}`}
-                      >
-                        <td className="p-2 text-blue-600 underline cursor-pointer">
+                      <td className="p-2 text-blue-600 underline cursor-pointer">
+                        <Link
+                          to={`/vet-freelancer/home/pet-details/${row.pet_id}`}
+                        >
                           {row.pet_name}
-                        </td>
-                      </Link>
+                        </Link>
+                      </td>
                       <td className="p-2">{row.type_name}</td>
                       <td className="p-2">{row.status}</td>
                       <td className="p-2 text-center">
@@ -280,6 +307,8 @@ export default function VetFreelancerSchedule() {
                             )
                           }
                         />
+
+                        {/* Action buttons */}
                         {activeRow === row.appointment_id && (
                           <div className="flex flex-col items-center gap-1 mt-1">
                             {row.status === "Pending" && (
@@ -289,14 +318,7 @@ export default function VetFreelancerSchedule() {
                                     await scheduleAppointment(
                                       row.appointment_id
                                     );
-                                    setAppointments((prev) =>
-                                      prev.map((a) =>
-                                        a.appointment_id === row.appointment_id
-                                          ? { ...a, status: "Scheduled" }
-                                          : a
-                                      )
-                                    );
-                                    setActiveRow(null);
+                                    window.location.reload();
                                   }}
                                   className="bg-blue-500 text-white px-2 py-1 rounded text-xs w-20"
                                 >
@@ -305,14 +327,7 @@ export default function VetFreelancerSchedule() {
                                 <button
                                   onClick={async () => {
                                     await rejectAppointment(row.appointment_id);
-                                    setAppointments((prev) =>
-                                      prev.map((a) =>
-                                        a.appointment_id === row.appointment_id
-                                          ? { ...a, status: "Rejected" }
-                                          : a
-                                      )
-                                    );
-                                    setActiveRow(null);
+                                    window.location.reload();
                                   }}
                                   className="bg-red-500 text-white px-2 py-1 rounded text-xs w-20"
                                 >
@@ -323,35 +338,8 @@ export default function VetFreelancerSchedule() {
                             {row.status === "Scheduled" && (
                               <button
                                 onClick={async () => {
-                                  try {
-                                    await completeAppointment(
-                                      row.appointment_id
-                                    );
-
-                                    // 🟢 Update both appointment lists
-                                    setAppointments((prev) =>
-                                      prev.map((a) =>
-                                        a.appointment_id === row.appointment_id
-                                          ? { ...a, status: "Complete" }
-                                          : a
-                                      )
-                                    );
-
-                                    setFilteredAppointments((prev) =>
-                                      prev.map((a) =>
-                                        a.appointment_id === row.appointment_id
-                                          ? { ...a, status: "Complete" }
-                                          : a
-                                      )
-                                    );
-
-                                    setActiveRow(null);
-                                  } catch (err) {
-                                    console.error(
-                                      "❌ Failed to complete appointment:",
-                                      err
-                                    );
-                                  }
+                                  await completeAppointment(row.appointment_id);
+                                  window.location.reload();
                                 }}
                                 className="bg-green-600 text-white px-2 py-1 rounded text-xs w-20"
                               >
@@ -366,7 +354,7 @@ export default function VetFreelancerSchedule() {
                 ) : (
                   <tr>
                     <td colSpan="6" className="text-center p-4 text-gray-500">
-                      No appointments found.
+                      No upcoming appointments.
                     </td>
                   </tr>
                 )}

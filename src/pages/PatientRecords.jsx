@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getPatientsClinic } from "../api/get/getPatientClinic";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // ✅ Correct way
-
+import autoTable from "jspdf-autotable";
 import { Link } from "react-router-dom";
 
 function PatientRecords() {
@@ -11,34 +10,41 @@ function PatientRecords() {
   const [endDate, setEndDate] = useState("");
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  console.log("records");
-  console.log(records);
-  // Fetch patient records from backend
+  const [showContagiousOnly, setShowContagiousOnly] = useState(false); // ✅ new toggle
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getPatientsClinic(clinicId);
-      setRecords(data);
-      setLoading(false);
+      try {
+        const data = await getPatientsClinic(clinicId);
+        setRecords(data || []);
+      } catch (err) {
+        console.error("⚠️ Failed to fetch clinic patient records:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-
     fetchData();
   }, [clinicId]);
 
   const parseDate = (dateStr) => new Date(dateStr);
 
-  // Filter records based on date range
+  // ✅ Filter by date + contagious toggle
   const filteredRecords = records.filter((record) => {
     const recordDate = parseDate(record.date);
     const start = startDate ? parseDate(startDate) : null;
     const end = endDate ? parseDate(endDate) : null;
 
-    if (start && end) return recordDate >= start && recordDate <= end;
-    if (start) return recordDate >= start;
-    if (end) return recordDate <= end;
+    if (start && end && (recordDate < start || recordDate > end)) return false;
+    if (start && recordDate < start) return false;
+    if (end && recordDate > end) return false;
+
+    // Show only contagious if toggled
+    if (showContagiousOnly && !record.is_contagious) return false;
+
     return true;
   });
+
+  // ✅ PDF export now includes contagious info
   const handleExportPDF = () => {
     const doc = new jsPDF({
       orientation: "landscape",
@@ -47,7 +53,13 @@ function PatientRecords() {
     });
 
     doc.setFontSize(16);
-    doc.text("Patient Records", 40, 40);
+    doc.text(
+      showContagiousOnly
+        ? "Clinic Patient Records - Contagious Diseases"
+        : "Clinic Patient Records",
+      40,
+      40
+    );
 
     const tableColumn = [
       "Record ID",
@@ -64,12 +76,15 @@ function PatientRecords() {
       record.customer_name,
       record.pet_name,
       record.veterinarian_name,
-      new Date(record.date).toLocaleDateString(),
-      record.breed,
-      record.reason,
+      new Date(record.date).toLocaleDateString("en-PH"),
+      record.breed || "N/A",
+      `${record.reason || "N/A"}${
+        record.is_contagious && record.contagious_disease
+          ? ` ⚠️ (${record.contagious_disease})`
+          : ""
+      }`,
     ]);
 
-    // ✅ use autoTable function
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
@@ -87,7 +102,11 @@ function PatientRecords() {
       },
     });
 
-    doc.save("patient_records.pdf");
+    doc.save(
+      showContagiousOnly
+        ? "contagious_clinic_patient_records.pdf"
+        : "clinic_patient_records.pdf"
+    );
   };
 
   return (
@@ -98,7 +117,7 @@ function PatientRecords() {
       <div className="flex justify-center sm:justify-between items-center flex-wrap">
         <h2 className="text-3xl font-bold mb-6">Patient Records</h2>
 
-        {/* Date Filters + PDF Button */}
+        {/* ✅ Date Filters + Buttons */}
         <div className="flex gap-4 mb-6 flex-wrap justify-center items-end">
           <div>
             <label
@@ -115,6 +134,7 @@ function PatientRecords() {
               className="border border-gray-300 rounded px-3 py-2"
             />
           </div>
+
           <div>
             <label
               htmlFor="endDate"
@@ -130,6 +150,22 @@ function PatientRecords() {
               className="border border-gray-300 rounded px-3 py-2"
             />
           </div>
+
+          {/* ✅ Contagious toggle */}
+          <button
+            onClick={() => setShowContagiousOnly((prev) => !prev)}
+            className={`${
+              showContagiousOnly
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-yellow-500 hover:bg-yellow-600"
+            } text-white font-semibold px-4 py-2 rounded`}
+          >
+            {showContagiousOnly
+              ? "Show All Patients"
+              : "🦠 Show Contagious Only"}
+          </button>
+
+          {/* ✅ Export button */}
           <button
             onClick={handleExportPDF}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded"
@@ -173,17 +209,26 @@ function PatientRecords() {
                 >
                   <td className="p-2 md:p-4">{record.appointment_id}</td>
                   <td className="p-2 md:p-4">{record.customer_name}</td>
-                  <Link to={`/pet-details/${record.pet_id}`}>
-                    <td className="text-blue-600 p-2 md:p-4">
+                  <td className="text-blue-600 p-2 md:p-4">
+                    <Link to={`/pet-details/${record.pet_id}`}>
                       {record.pet_name}
-                    </td>
-                  </Link>
+                    </Link>
+                  </td>
                   <td className="p-2 md:p-4">{record.veterinarian_name}</td>
                   <td className="p-2 md:p-4">
-                    {new Date(record.date).toLocaleDateString()}
+                    {new Date(record.date).toLocaleDateString("en-PH")}
                   </td>
-                  <td className="p-2 md:p-4">{record.breed}</td>
-                  <td className="p-2 md:p-4">{record.reason}</td>
+                  <td className="p-2 md:p-4">{record.breed || "N/A"}</td>
+
+                  {/* ✅ Reason with contagious tag */}
+                  <td className="p-2 md:p-4">
+                    {record.reason || "N/A"}
+                    {record.is_contagious && record.contagious_disease ? (
+                      <span className="ml-2 text-red-600 font-semibold">
+                        ⚠️ {record.contagious_disease}
+                      </span>
+                    ) : null}
+                  </td>
                 </tr>
               ))
             )}

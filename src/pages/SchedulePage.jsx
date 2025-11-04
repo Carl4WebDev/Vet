@@ -72,21 +72,34 @@ export default function Schedule() {
     fetchVets();
   }, []);
 
-  // 🟡 Fetch appointments whenever filters change
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!selectedVet) return;
+
       let query = selectedDate || searchTerm;
       if (!query && monthFilter && yearFilter) {
         query = `${yearFilter}-${monthFilter}`;
       }
 
       const data = await getAppointmentsByVet(selectedVet.vet_id, query);
-      setAppointments(data);
-      setFilteredAppointments(data);
+
+      const now = new Date();
+      const upcoming = data.filter((appt) => {
+        if (!appt.date || !appt.end_time) return true;
+
+        // Combine date + time as local, not UTC
+        const [hour, minute] = appt.end_time.split(":").map(Number);
+        const localAppt = new Date(appt.date);
+        localAppt.setHours(hour, minute, 0, 0);
+
+        return localAppt >= now; // keep only today & future
+      });
+
+      setAppointments(upcoming);
+      setFilteredAppointments(upcoming);
 
       const appointmentDates = new Set(
-        data
+        upcoming
           .map((a) => {
             if (!a.date) return null;
             const localDate = new Date(a.date);
@@ -385,6 +398,9 @@ export default function Schedule() {
                                         )
                                       );
                                       setActiveRow(null);
+
+                                      // ✅ Refresh page after success
+                                      window.location.reload();
                                     } catch (err) {
                                       console.error("Failed to schedule:", err);
                                     }
