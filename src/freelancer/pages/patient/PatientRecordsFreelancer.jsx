@@ -3,6 +3,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Link } from "react-router-dom";
 import { getPatientsFreelanceVet } from "../../api/patient/getPatientsFreelanceVet";
+const vetName = localStorage.getItem("vet_name");
 
 export default function PatientRecordsFreelancer() {
   const vetId = localStorage.getItem("vet_id");
@@ -113,7 +114,7 @@ export default function PatientRecordsFreelancer() {
 
       {/* Filters + Buttons */}
       <div className="flex justify-center sm:justify-between items-center flex-wrap">
-        <h2 className="text-3xl font-bold mb-6">Patient Records</h2>
+        <h2 className="text-3xl font-bold mb-6">Dr. {vetName}</h2>
 
         <div className="flex gap-4 mb-6 flex-wrap justify-center items-end">
           <div>
@@ -165,7 +166,6 @@ export default function PatientRecordsFreelancer() {
               <th className="p-2 text-left">Record ID</th>
               <th className="p-2 text-left">Customer Name</th>
               <th className="p-2 text-left">Pet Name</th>
-              <th className="p-2 text-left">Veterinarian</th>
               <th className="p-2 text-left">Date</th>
               <th className="p-2 text-left">Breed</th>
               <th className="p-2 text-left">Reason</th>
@@ -200,7 +200,6 @@ export default function PatientRecordsFreelancer() {
                       {r.pet_name}
                     </Link>
                   </td>
-                  <td className="p-2">{r.veterinarian_name}</td>
                   <td className="p-2">
                     {new Date(r.date).toLocaleDateString("en-PH")}
                   </td>
