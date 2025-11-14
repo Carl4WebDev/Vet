@@ -20,6 +20,8 @@ export default function Schedule() {
   const [highlightedDates, setHighlightedDates] = useState(new Set());
   const [activeRow, setActiveRow] = useState(null);
   const [viewingPending, setViewingPending] = useState(false);
+  const [lastCount, setLastCount] = useState(0);
+  const [autoRefreshing, setAutoRefreshing] = useState(false); // optional
 
   // 📅 Calendar states
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
@@ -39,6 +41,66 @@ export default function Schedule() {
     "November",
     "December",
   ];
+  const refreshAppointments = async () => {
+    if (!selectedVet) return;
+
+    let query = selectedDate || searchTerm;
+    if (!query && monthFilter && yearFilter) {
+      query = `${yearFilter}-${monthFilter}`;
+    }
+
+    const data = await getAppointmentsByVet(selectedVet.vet_id, query);
+
+    const now = new Date();
+    const upcoming = data.filter((appt) => {
+      if (!appt.date || !appt.end_time) return true;
+
+      const [hour, minute] = appt.end_time.split(":").map(Number);
+      const d = new Date(appt.date);
+      d.setHours(hour, minute, 0, 0);
+
+      return d >= now;
+    });
+
+    setAppointments(upcoming);
+    setFilteredAppointments(upcoming);
+
+    const highlightDates = new Set(
+      upcoming.map((a) => {
+        if (!a.date) return null;
+        const d = new Date(a.date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}-${String(d.getDate()).padStart(2, "0")}`;
+      })
+    );
+
+    setHighlightedDates(highlightDates);
+  };
+  useEffect(() => {
+    if (!selectedVet) return;
+
+    const interval = setInterval(async () => {
+      const data = await getAppointmentsByVet(selectedVet.vet_id, "");
+
+      const now = new Date();
+      const upcoming = data.filter((appt) => {
+        if (!appt.date || !appt.end_time) return true;
+        const [h, m] = appt.end_time.split(":").map(Number);
+        const d = new Date(appt.date);
+        d.setHours(h, m, 0, 0);
+        return d >= now;
+      });
+
+      if (upcoming.length !== lastCount) {
+        setLastCount(upcoming.length);
+        refreshAppointments();
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [selectedVet, lastCount]);
 
   // ⏳ Wait for clinic_id before proceeding
   function waitForClinicId(timeout = 5000) {

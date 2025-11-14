@@ -19,10 +19,72 @@ export default function VetFreelancerSchedule() {
   const [activeRow, setActiveRow] = useState(null);
   const [viewingPending, setViewingPending] = useState(false);
 
+  const [lastCount, setLastCount] = useState(0);
+  const vetId = localStorage.getItem("vet_id");
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const data = await getAppointmentsByVetFreelancer(vetId, "");
+
+      const now = new Date();
+      const upcoming = data.filter((appt) => {
+        if (!appt.date || !appt.end_time) return false;
+
+        const apptDate = new Date(appt.date);
+        const [h, m] = appt.end_time.split(":").map(Number);
+        apptDate.setHours(h, m, 0, 0);
+
+        return apptDate >= now;
+      });
+
+      if (upcoming.length !== lastCount) {
+        setLastCount(upcoming.length);
+        refreshAppointments();
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [lastCount]);
+
+  const refreshAppointments = async () => {
+    try {
+      const data = await getAppointmentsByVetFreelancer(vetId, "");
+
+      const now = new Date();
+
+      // Rebuild upcoming list
+      const upcoming = data.filter((appt) => {
+        if (!appt.date || !appt.end_time) return false;
+
+        const apptDate = new Date(appt.date);
+        const [h, m] = appt.end_time.split(":").map(Number);
+        apptDate.setHours(h, m, 0, 0);
+
+        return apptDate >= now;
+      });
+
+      setAppointments(upcoming);
+      setFilteredAppointments(upcoming);
+
+      // Rebuild highlighted dates
+      const highlightDates = new Set(
+        upcoming.map((a) => {
+          const d = new Date(a.date);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        })
+      );
+
+      setHighlightedDates(highlightDates);
+    } catch (err) {
+      console.error("Refresh error:", err);
+    }
+  };
+
   // Calendar
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
-  const vetId = localStorage.getItem("vet_id");
 
   const monthNames = [
     "January",
